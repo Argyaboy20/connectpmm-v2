@@ -3,6 +3,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins";
 import { db } from "../db";
+import { createAuthMiddleware, APIError } from "better-auth/api";
+import { skemaDaftar } from "./validasi-daftar";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
@@ -26,4 +28,15 @@ export const auth = betterAuth({
     },
   },
   plugins: [username(), nextCookies()],
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-up/email") return;
+      const hasil = skemaDaftar.safeParse(ctx.body);
+      if (!hasil.success) {
+        throw new APIError("BAD_REQUEST", {
+          message: hasil.error.issues[0]?.message ?? "Data pendaftaran tidak valid.",
+        });
+      }
+    }),
+  },
 });
