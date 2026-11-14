@@ -27,6 +27,7 @@ export default async function Beranda({
   const daftar = await db
     .select({
       id: post.id,
+      penulisId: post.penulisId,
       isi: post.isi,
       tipe: post.tipe,
       dibuatPada: post.dibuatPada,
@@ -84,6 +85,7 @@ export default async function Beranda({
         .groupBy(komentar.postId)
     : [];
   const komentarPerPost = new Map(hitungKomentar.map((k) => [k.postId, k.n]));
+  const idSaya = sesi && sesi.user.status !== "DIBLOKIR" ? sesi.user.id : null;
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
@@ -134,6 +136,7 @@ export default async function Beranda({
           <PostCard
             key={d.id}
             masuk={!!sesi}
+            bolehHapus={idSaya === d.penulisId}
             data={{
               ...d,
               gambar: gambarPerPost.get(d.id) ?? [],

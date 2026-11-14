@@ -11,6 +11,7 @@ import { PostCard } from "@/components/post-card";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { FormKomentar } from "@/components/app/form-komentar";
+import { TombolHapus } from "@/components/app/tombol-hapus";
 
 export const metadata = { title: "Post · PMM Connect" };
 
@@ -20,10 +21,12 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
   if (!id.success) notFound();
 
   const sesi = await ambilSesi();
+  const idSaya = sesi && sesi.user.status !== "DIBLOKIR" ? sesi.user.id : null;
 
   const [p] = await db
     .select({
       id: post.id,
+      penulisId: post.penulisId,
       isi: post.isi,
       tipe: post.tipe,
       dibuatPada: post.dibuatPada,
@@ -56,6 +59,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
     db
       .select({
         id: komentar.id,
+        penulisId: komentar.penulisId,
         isi: komentar.isi,
         dibuatPada: komentar.dibuatPada,
         nama: user.name,
@@ -79,6 +83,8 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
 
       <PostCard
         masuk={!!sesi}
+        bolehHapus={idSaya === p.penulisId}
+        keBeranda
         data={{
           ...p,
           gambar,
@@ -132,6 +138,9 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
                 </time>
                 <p className="mt-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap">{k.isi}</p>
               </div>
+              {(idSaya === k.penulisId || idSaya === p.penulisId) && (
+                <TombolHapus jenis="komentar" id={k.id} />
+              )}
             </article>
           ))
         )}

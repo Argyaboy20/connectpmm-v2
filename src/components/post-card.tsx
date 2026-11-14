@@ -4,6 +4,7 @@ import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { waktuPost } from "@/lib/waktu";
 import Link from "next/link";
+import { TombolHapus } from "@/components/app/tombol-hapus";
 
 export type GambarPost = { kunci: string; lebar: number | null; tinggi: number | null };
 
@@ -59,7 +60,17 @@ function Galeri({ gambar }: { gambar: GambarPost[] }) {
   );
 }
 
-export function PostCard({ data, masuk = false }: { data: DataPost; masuk?: boolean }) {
+export function PostCard({
+  data,
+  masuk = false,
+  bolehHapus = false,
+  keBeranda = false,
+}: {
+  data: DataPost;
+  masuk?: boolean;
+  bolehHapus?: boolean;
+  keBeranda?: boolean;
+}) {
   return (
     <article className="rounded-2xl border p-4">
       <div className="flex items-start gap-3">
@@ -74,6 +85,13 @@ export function PostCard({ data, masuk = false }: { data: DataPost; masuk?: bool
             {waktuPost(data.dibuatPada)}
           </time>
         </div>
+        {bolehHapus && (
+          <TombolHapus
+            jenis={data.tipe === "CONNEX" ? "connex" : "post"}
+            id={data.id}
+            keBeranda={keBeranda}
+          />
+        )}
       </div>
 
       {data.gambar && data.gambar.length > 0 && <Galeri gambar={data.gambar} />}
