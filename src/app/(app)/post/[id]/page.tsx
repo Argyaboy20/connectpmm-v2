@@ -22,6 +22,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
 
   const sesi = await ambilSesi();
   const idSaya = sesi && sesi.user.status !== "DIBLOKIR" ? sesi.user.id : null;
+  const koordinator = sesi?.user.role === "KOORDINATOR" && sesi.user.status !== "DIBLOKIR";
 
   const [p] = await db
     .select({
@@ -83,7 +84,8 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
 
       <PostCard
         masuk={!!sesi}
-        bolehHapus={idSaya === p.penulisId}
+        bolehHapus={idSaya === p.penulisId || koordinator}
+        moderasi={koordinator && idSaya !== p.penulisId}
         keBeranda
         data={{
           ...p,
@@ -138,8 +140,12 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
                 </time>
                 <p className="mt-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap">{k.isi}</p>
               </div>
-              {(idSaya === k.penulisId || idSaya === p.penulisId) && (
-                <TombolHapus jenis="komentar" id={k.id} />
+              {(idSaya === k.penulisId || idSaya === p.penulisId || koordinator) && (
+                <TombolHapus
+                  jenis="komentar"
+                  id={k.id}
+                  moderasi={koordinator && idSaya !== k.penulisId && idSaya !== p.penulisId}
+                />
               )}
             </article>
           ))

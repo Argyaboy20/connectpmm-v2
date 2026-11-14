@@ -15,9 +15,10 @@ type Props = {
   kursorAwal: string | null;
   masuk: boolean;
   idSaya: string | null;
+  koordinator: boolean;
 };
 
-export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya }: Props) {
+export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }: Props) {
   const router = useRouter();
   const [item, setItem] = useState(awal);
   const [kursor, setKursor] = useState(kursorAwal);
@@ -155,7 +156,13 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya }: Props) {
       {pita}
 
       {item.map((d) => (
-        <PostCard key={d.id} data={d} masuk={masuk} bolehHapus={idSaya === d.penulisId} />
+        <PostCard
+          key={d.id}
+          data={d}
+          masuk={masuk}
+          bolehHapus={idSaya === d.penulisId || koordinator}
+          moderasi={koordinator && idSaya !== d.penulisId}
+        />
       ))}
 
       {kursor && <div ref={penanda} aria-hidden className="h-px" />}

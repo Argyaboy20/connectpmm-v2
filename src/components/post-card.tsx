@@ -64,11 +64,13 @@ export function PostCard({
   data,
   masuk = false,
   bolehHapus = false,
+  moderasi = false,
   keBeranda = false,
 }: {
   data: DataPost;
   masuk?: boolean;
   bolehHapus?: boolean;
+  moderasi?: boolean;
   keBeranda?: boolean;
 }) {
   return (
@@ -89,6 +91,7 @@ export function PostCard({
           <TombolHapus
             jenis={data.tipe === "CONNEX" ? "connex" : "post"}
             id={data.id}
+            moderasi={moderasi}
             keBeranda={keBeranda}
           />
         )}

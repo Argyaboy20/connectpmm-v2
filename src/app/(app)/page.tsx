@@ -26,6 +26,7 @@ export default async function Beranda({
     idSaya: sesi?.user.id ?? null,
   });
   const idPenghapus = sesi && sesi.user.status !== "DIBLOKIR" ? sesi.user.id : null;
+  const koordinator = sesi?.user.role === "KOORDINATOR" && sesi.user.status !== "DIBLOKIR";
 
   return (
     <div className="space-y-4">
@@ -69,6 +70,7 @@ export default async function Beranda({
         kursorAwal={feed.kursorBerikut}
         masuk={!!sesi}
         idSaya={idPenghapus}
+        koordinator={koordinator}
       />
     </div>
   );
