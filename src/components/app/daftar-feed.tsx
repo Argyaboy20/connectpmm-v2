@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImageIcon, Loader2, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowUp, ImageIcon, Loader2, MessageCircle } from "lucide-react";
 import { PostCard } from "@/components/post-card";
 import { muatFeed } from "@/server/feed";
 import type { ItemFeed } from "@/lib/feed";
+
+const JEDA_CEK = 30_000;
 
 type Props = {
   tab: "post" | "connex";
@@ -15,13 +18,16 @@ type Props = {
 };
 
 export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya }: Props) {
+  const router = useRouter();
   const [item, setItem] = useState(awal);
   const [kursor, setKursor] = useState(kursorAwal);
   const [memuat, setMemuat] = useState(false);
   const [galat, setGalat] = useState("");
+  const [baru, setBaru] = useState<{ n: number; lebih: boolean } | null>(null);
   const kursorRef = useRef(kursorAwal);
   const sibuk = useRef(false);
   const penanda = useRef<HTMLDivElement>(null);
+  const kursorTeratas = awal[0]?.kursor ?? null;
 
   const muat = useCallback(async () => {
     const k = kursorRef.current;
@@ -71,22 +77,83 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya }: Props) {
     return () => window.removeEventListener("post-dihapus", saatHapus);
   }, []);
 
+  useEffect(() => {
+    const tipe = tab === "connex" ? "CONNEX" : "POST";
+    let aktif = true;
+    let sedangCek = false;
+
+    async function cek() {
+      if (sedangCek || document.visibilityState !== "visible") return;
+      sedangCek = true;
+      try {
+        const q = new URLSearchParams({ tipe });
+        if (kursorTeratas) q.set("kursor", kursorTeratas);
+        const r = await fetch(`/api/feed-baru?${q}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const data = (await r.json()) as { n: number; lebih: boolean };
+        if (aktif) setBaru(data.n > 0 ? data : null);
+      } catch {
+        // diam-diam, dicoba lagi di putaran berikutnya
+      } finally {
+        sedangCek = false;
+      }
+    }
+
+    function saatTampil() {
+      if (document.visibilityState === "visible") void cek();
+    }
+
+    const timer = setInterval(() => void cek(), JEDA_CEK);
+    document.addEventListener("visibilitychange", saatTampil);
+    return () => {
+      aktif = false;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", saatTampil);
+    };
+  }, [tab, kursorTeratas]);
+
+  function tampilkan() {
+    setBaru(null);
+    window.scrollTo({ top: 0 });
+    router.refresh();
+  }
+
+  const namaBaru = tab === "connex" ? "Connex" : "post";
+  const pita = baru && (
+    <div className="sticky top-3 z-10 flex justify-center">
+      <button
+        type="button"
+        onClick={tampilkan}
+        className="bg-brand-gradient inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg"
+      >
+        <ArrowUp className="size-4" />
+        {baru.n}
+        {baru.lebih ? "+" : ""} {namaBaru} baru · Tampilkan
+      </button>
+    </div>
+  );
+
   if (item.length === 0 && !kursor) {
     return (
-      <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-2xl border border-dashed py-16 text-center text-sm">
-        {tab === "post" ? (
-          <ImageIcon className="size-10 opacity-40" />
-        ) : (
-          <MessageCircle className="size-10 opacity-40" />
-        )}
-        <p>{tab === "post" ? "Belum ada post foto." : "Belum ada Connex."}</p>
-        <p>Jadilah yang pertama berbagi cerita.</p>
+      <div className="space-y-4">
+        {pita}
+        <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-2xl border border-dashed py-16 text-center text-sm">
+          {tab === "post" ? (
+            <ImageIcon className="size-10 opacity-40" />
+          ) : (
+            <MessageCircle className="size-10 opacity-40" />
+          )}
+          <p>{tab === "post" ? "Belum ada post foto." : "Belum ada Connex."}</p>
+          <p>Jadilah yang pertama berbagi cerita.</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {pita}
+
       {item.map((d) => (
         <PostCard key={d.id} data={d} masuk={masuk} bolehHapus={idSaya === d.penulisId} />
       ))}
