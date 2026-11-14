@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { ImageIcon, MessageCircle } from "lucide-react";
 import { db } from "@/db";
-import { post, user } from "@/db/schema";
+import { post, postGambar, user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
 import { PostCard } from "@/components/post-card";
 import { KomposerConnex } from "@/components/app/komposer-connex";
@@ -40,6 +40,24 @@ export default async function Beranda({
     .orderBy(desc(post.dibuatPada))
     .limit(20);
 
+  const gambarPost = daftar.length
+    ? await db
+        .select({
+          postId: postGambar.postId,
+          kunci: postGambar.kunci,
+          lebar: postGambar.lebar,
+          tinggi: postGambar.tinggi,
+        })
+        .from(postGambar)
+        .where(inArray(postGambar.postId, daftar.map((d) => d.id)))
+        .orderBy(asc(postGambar.urutan))
+    : [];
+  const gambarPerPost = new Map<string, { kunci: string; lebar: number | null; tinggi: number | null }[]>();
+  for (const g of gambarPost) {
+    const arr = gambarPerPost.get(g.postId) ?? [];
+    arr.push({ kunci: g.kunci, lebar: g.lebar, tinggi: g.tinggi });
+    gambarPerPost.set(g.postId, arr);
+  }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
@@ -86,7 +104,9 @@ export default async function Beranda({
           <p>Jadilah yang pertama berbagi cerita.</p>
         </div>
       ) : (
-        daftar.map((d) => <PostCard key={d.id} data={d} />)
+        daftar.map((d) => (
+          <PostCard key={d.id} data={{ ...d, gambar: gambarPerPost.get(d.id) ?? [] }} />
+        ))
       )}
     </div>
   );
