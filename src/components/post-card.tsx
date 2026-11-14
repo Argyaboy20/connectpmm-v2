@@ -3,6 +3,7 @@ import { TombolSuka } from "@/components/app/tombol-suka";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { waktuPost } from "@/lib/waktu";
+import Link from "next/link";
 
 export type GambarPost = { kunci: string; lebar: number | null; tinggi: number | null };
 
@@ -17,6 +18,7 @@ export type DataPost = {
   gambar?: GambarPost[];
   jumlahSuka?: number;
   disukai?: boolean;
+  jumlahKomentar?: number;
 };
 
 function Galeri({ gambar }: { gambar: GambarPost[] }) {
@@ -88,9 +90,16 @@ export function PostCard({ data, masuk = false }: { data: DataPost; masuk?: bool
           awalSuka={data.disukai ?? false}
           awalJumlah={data.jumlahSuka ?? 0}
         />
-        <span title="Segera" className="opacity-50">
+        <Link
+          href={`/post/${data.id}`}
+          aria-label="Lihat komentar"
+          className="hover:text-foreground flex items-center gap-1.5"
+        >
           <MessageCircle className="size-5" />
-        </span>
+          {(data.jumlahKomentar ?? 0) > 0 && (
+            <span className="text-sm tabular-nums">{data.jumlahKomentar}</span>
+          )}
+        </Link>
         <span title="Segera" className="opacity-50">
           <Share2 className="size-5" />
         </span>

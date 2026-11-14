@@ -2,7 +2,7 @@ import Link from "next/link";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ImageIcon, MessageCircle } from "lucide-react";
 import { db } from "@/db";
-import { post, postGambar, suka, user } from "@/db/schema";
+import { komentar, post, postGambar, suka, user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
 import { PostCard } from "@/components/post-card";
 import { KomposerConnex } from "@/components/app/komposer-connex";
@@ -76,6 +76,14 @@ export default async function Beranda({
           .where(and(eq(suka.userId, sesi.user.id), inArray(suka.postId, idPost)))
       : [];
   const disukaSet = new Set(milikku.map((s) => s.postId));
+  const hitungKomentar = idPost.length
+    ? await db
+        .select({ postId: komentar.postId, n: sql<number>`count(*)::int` })
+        .from(komentar)
+        .where(and(inArray(komentar.postId, idPost), isNull(komentar.dihapusPada)))
+        .groupBy(komentar.postId)
+    : [];
+  const komentarPerPost = new Map(hitungKomentar.map((k) => [k.postId, k.n]));
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
@@ -131,6 +139,7 @@ export default async function Beranda({
               gambar: gambarPerPost.get(d.id) ?? [],
               jumlahSuka: jumlahPerPost.get(d.id) ?? 0,
               disukai: disukaSet.has(d.id),
+              jumlahKomentar: komentarPerPost.get(d.id) ?? 0,
             }}
           />
         ))
