@@ -1,19 +1,24 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, asc, eq, isNotNull } from "drizzle-orm";
+import { Search, UserCheck, Users } from "lucide-react";
+import { and, asc, desc, eq, ilike, isNotNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { ambilPelaku } from "@/lib/pelaku";
 import { waktuLengkap } from "@/lib/waktu";
 import { AvatarInisial } from "@/components/avatar-inisial";
+import { RoleBadge } from "@/components/role-badge";
 import { AksiVerifikasi } from "@/components/app/aksi-verifikasi";
+import { AksiBlokir } from "@/components/app/aksi-blokir";
 
 export const metadata = { title: "Moderasi · PMM Connect" };
 
-export default async function Moderasi() {
-  const pelaku = await ambilPelaku();
-  if (!pelaku) redirect("/masuk");
-  if (pelaku.role !== "KOORDINATOR" || pelaku.status === "DIBLOKIR") redirect("/");
+const TAB = [
+  { kunci: "verifikasi", label: "Verifikasi", ikon: UserCheck },
+  { kunci: "pengguna", label: "Pengguna", ikon: Users },
+] as const;
 
+async function DaftarVerifikasi() {
   const pemohon = await db
     .select({
       id: user.id,
@@ -35,10 +40,7 @@ export default async function Moderasi() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold">Moderasi</h1>
-        <p className="text-muted-foreground text-sm">Verifikasi pendaftaran ({pemohon.length})</p>
-      </div>
+      <p className="text-muted-foreground text-sm">Verifikasi pendaftaran ({pemohon.length})</p>
 
       {pemohon.length === 0 ? (
         <p className="text-muted-foreground rounded-2xl border border-dashed py-12 text-center text-sm">
@@ -89,6 +91,123 @@ export default async function Moderasi() {
           );
         })
       )}
+    </div>
+  );
+}
+
+async function DaftarPengguna({ q, idSaya }: { q: string; idSaya: string }) {
+  const pola = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
+
+  const daftar = await db
+    .select({
+      id: user.id,
+      nama: user.name,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    })
+    .from(user)
+    .where(
+      q
+        ? or(ilike(user.name, pola), ilike(user.username, pola), ilike(user.email, pola))
+        : undefined,
+    )
+    .orderBy(desc(user.createdAt))
+    .limit(20);
+
+  return (
+    <div className="space-y-4">
+      <form action="/moderasi" method="get" className="flex gap-2">
+        <input type="hidden" name="tab" value="pengguna" />
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          maxLength={50}
+          placeholder="Cari nama, username, atau email"
+          aria-label="Cari pengguna"
+          className="min-w-0 flex-1 rounded-lg border bg-transparent px-3 py-2 text-sm outline-none"
+        />
+        <button
+          type="submit"
+          className="bg-brand-gradient inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white"
+        >
+          <Search className="size-4" />
+          Cari
+        </button>
+      </form>
+
+      <p className="text-muted-foreground text-xs">
+        {q ? `Hasil untuk “${q}”` : "Akun terbaru"} · maksimal 20 akun, gunakan pencarian untuk mempersempit.
+      </p>
+
+      {daftar.length === 0 ? (
+        <p className="text-muted-foreground rounded-2xl border border-dashed py-12 text-center text-sm">
+          Tidak ada akun yang cocok.
+        </p>
+      ) : (
+        daftar.map((p) => (
+          <article key={p.id} className="flex items-start gap-3 rounded-2xl border p-4">
+            <AvatarInisial nama={p.nama} />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="truncate font-semibold">{p.nama}</span>
+                <RoleBadge role={p.role} />
+                {p.status === "DIBLOKIR" && (
+                  <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-xs font-semibold">
+                    Diblokir
+                  </span>
+                )}
+              </div>
+              <p className="text-muted-foreground truncate text-sm">@{p.username}</p>
+              <p className="text-muted-foreground truncate text-xs">{p.email}</p>
+            </div>
+            {p.id === idSaya ? (
+              <span className="text-muted-foreground shrink-0 self-start py-1.5 text-xs">Kamu</span>
+            ) : p.status === "DIBLOKIR" || p.role !== "KOORDINATOR" ? (
+              <AksiBlokir id={p.id} nama={p.nama} diblokir={p.status === "DIBLOKIR"} />
+            ) : null}
+          </article>
+        ))
+      )}
+    </div>
+  );
+}
+
+export default async function Moderasi({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; q?: string }>;
+}) {
+  const pelaku = await ambilPelaku();
+  if (!pelaku) redirect("/masuk");
+  if (pelaku.role !== "KOORDINATOR" || pelaku.status === "DIBLOKIR") redirect("/");
+
+  const param = await searchParams;
+  const tab = param.tab === "pengguna" ? "pengguna" : "verifikasi";
+  const q = (param.q ?? "").trim().slice(0, 50);
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold">Moderasi</h1>
+
+      <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
+        {TAB.map(({ kunci, label, ikon: Ikon }) => (
+          <Link
+            key={kunci}
+            href={kunci === "verifikasi" ? "/moderasi" : `/moderasi?tab=${kunci}`}
+            className={`flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
+              tab === kunci ? "bg-brand-gradient text-white" : "hover:bg-muted"
+            }`}
+          >
+            <Ikon className="size-4" />
+            {label}
+          </Link>
+        ))}
+      </div>
+
+      {tab === "verifikasi" ? <DaftarVerifikasi /> : <DaftarPengguna q={q} idSaya={pelaku.id} />}
     </div>
   );
 }
