@@ -31,8 +31,11 @@ export function TombolHapus({ jenis, id, keBeranda = false }: Props) {
           return;
         }
         dialog.current?.close();
+        if (jenis !== "komentar") {
+          window.dispatchEvent(new CustomEvent("post-dihapus", { detail: id }));
+        }
         if (keBeranda) router.push("/");
-        else router.refresh();
+        else if (jenis === "komentar") router.refresh();
       } catch {
         setPesan("Gagal menghapus. Coba lagi.");
       }
