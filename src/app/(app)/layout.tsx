@@ -1,5 +1,4 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { ambilSesi } from "@/lib/sesi";
 import type { Pengguna } from "@/lib/pengguna";
 import { Sidebar } from "@/components/app/sidebar";
 import { MenuBawah } from "@/components/app/menu-bawah";
@@ -7,7 +6,7 @@ import { BarAtasHp } from "@/components/app/bar-atas-hp";
 import { PanelKanan } from "@/components/app/panel-kanan";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const sesi = await auth.api.getSession({ headers: await headers() });
+  const sesi = await ambilSesi();
   const u = sesi?.user;
   const pengguna: Pengguna | null = u
     ? {
