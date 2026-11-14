@@ -25,6 +25,8 @@ export const auth = betterAuth({
       bio: { type: "string", required: false },
       disetujuiOleh: { type: "string", required: false, input: false },
       disetujuiPada: { type: "date", required: false, input: false },
+      roleDitolak: { type: "string", required: false, input: false },
+      alasanPenolakan: { type: "string", required: false, input: false },
     },
   },
   plugins: [username(), nextCookies()],

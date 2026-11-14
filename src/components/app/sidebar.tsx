@@ -40,7 +40,7 @@ export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
       </button>
 
       <nav className="flex-1 space-y-1 p-3">
-        {MENU.map((m) => {
+        {MENU.filter((m) => !m.hanyaKoordinator || pengguna?.role === "KOORDINATOR").map((m) => {
           const Ikon = m.ikon;
           if (!m.siap) {
             return (

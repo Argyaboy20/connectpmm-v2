@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/app/sidebar";
 import { MenuBawah } from "@/components/app/menu-bawah";
 import { BarAtasHp } from "@/components/app/bar-atas-hp";
 import { PanelKanan } from "@/components/app/panel-kanan";
+import { BannerPenolakan } from "@/components/app/banner-penolakan";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const sesi = await ambilSesi();
@@ -14,6 +15,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         username: u.username ?? null,
         role: u.role ?? "UMUM",
         roleDiminta: u.roleDiminta ?? null,
+        roleDitolak: u.roleDitolak ?? null,
+        alasanPenolakan: u.alasanPenolakan ?? null,
       }
     : null;
 
@@ -32,6 +35,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <strong>{pengguna.roleDiminta === "KOORDINATOR" ? "Koordinator" : "Peserta"}</strong>{" "}
               sedang diverifikasi. Sementara ini kamu masuk sebagai Umum.
             </div>
+          )}
+          {!pengguna?.roleDiminta && pengguna?.alasanPenolakan && (
+            <BannerPenolakan role={pengguna.roleDitolak ?? null} alasan={pengguna.alasanPenolakan} />
           )}
           {children}
         </main>

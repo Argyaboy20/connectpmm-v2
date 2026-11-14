@@ -9,7 +9,8 @@ const ITEM_HP = ["beranda", "pencarian", "buat", "notifikasi", "profil"];
 
 export function MenuBawah({ pengguna }: { pengguna: Pengguna | null }) {
   const pathname = usePathname();
-  const item = ITEM_HP.map((k) => MENU.find((m) => m.kunci === k)!);
+  const kunci = pengguna?.role === "KOORDINATOR" ? [...ITEM_HP, "moderasi"] : ITEM_HP;
+  const item = kunci.map((k) => MENU.find((m) => m.kunci === k)!);
 
   return (
     <nav className="bg-background fixed inset-x-0 bottom-0 z-20 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden">

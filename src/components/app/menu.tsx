@@ -1,4 +1,4 @@
-import { Bell, Home, Mail, PlusCircle, Search, UserCircle, type LucideIcon } from "lucide-react";
+import { Bell, Home, Mail, PlusCircle, Search, ShieldCheck, UserCircle, type LucideIcon } from "lucide-react";
 
 export type ItemMenu = {
   kunci: string;
@@ -7,6 +7,7 @@ export type ItemMenu = {
   href: string;
   siap: boolean;
   perluLogin?: boolean;
+  hanyaKoordinator?: boolean;
 };
 
 export const MENU: ItemMenu[] = [
@@ -16,4 +17,5 @@ export const MENU: ItemMenu[] = [
   { kunci: "notifikasi", label: "Notifikasi", ikon: Bell, href: "/notifikasi", siap: false },
   { kunci: "buat", label: "Buat", ikon: PlusCircle, href: "/buat", siap: true, perluLogin: true },
   { kunci: "profil", label: "Profil", ikon: UserCircle, href: "/profil", siap: false, perluLogin: true },
+  { kunci: "moderasi", label: "Moderasi", ikon: ShieldCheck, href: "/moderasi", siap: true, perluLogin: true, hanyaKoordinator: true },
 ];

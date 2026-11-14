@@ -3,4 +3,6 @@ export type Pengguna = {
   username: string | null;
   role: string;
   roleDiminta: string | null;
+  roleDitolak?: string | null;
+  alasanPenolakan?: string | null;
 };

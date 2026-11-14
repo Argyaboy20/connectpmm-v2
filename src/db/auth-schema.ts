@@ -25,6 +25,8 @@ export const user = pgTable("user", {
   bio: text("bio"),
   disetujuiOleh: text("disetujui_oleh"),
   disetujuiPada: timestamp("disetujui_pada"),
+  roleDitolak: text("role_ditolak"),
+  alasanPenolakan: text("alasan_penolakan"),
 },
 (t) => [
   check("user_role_check", sql`${t.role} in ('UMUM','PESERTA','KOORDINATOR')`),
