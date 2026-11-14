@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ImageIcon, MessageCircle } from "lucide-react";
 import { db } from "@/db";
-import { post, postGambar, user } from "@/db/schema";
+import { post, postGambar, suka, user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
 import { PostCard } from "@/components/post-card";
 import { KomposerConnex } from "@/components/app/komposer-connex";
@@ -58,6 +58,24 @@ export default async function Beranda({
     arr.push({ kunci: g.kunci, lebar: g.lebar, tinggi: g.tinggi });
     gambarPerPost.set(g.postId, arr);
   }
+  const idPost = daftar.map((d) => d.id);
+  const hitungSuka = idPost.length
+    ? await db
+        .select({ postId: suka.postId, n: sql<number>`count(*)::int` })
+        .from(suka)
+        .where(inArray(suka.postId, idPost))
+        .groupBy(suka.postId)
+    : [];
+  const jumlahPerPost = new Map(hitungSuka.map((s) => [s.postId, s.n]));
+
+  const milikku =
+    sesi && idPost.length
+      ? await db
+          .select({ postId: suka.postId })
+          .from(suka)
+          .where(and(eq(suka.userId, sesi.user.id), inArray(suka.postId, idPost)))
+      : [];
+  const disukaSet = new Set(milikku.map((s) => s.postId));
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
@@ -105,7 +123,16 @@ export default async function Beranda({
         </div>
       ) : (
         daftar.map((d) => (
-          <PostCard key={d.id} data={{ ...d, gambar: gambarPerPost.get(d.id) ?? [] }} />
+          <PostCard
+            key={d.id}
+            masuk={!!sesi}
+            data={{
+              ...d,
+              gambar: gambarPerPost.get(d.id) ?? [],
+              jumlahSuka: jumlahPerPost.get(d.id) ?? 0,
+              disukai: disukaSet.has(d.id),
+            }}
+          />
         ))
       )}
     </div>

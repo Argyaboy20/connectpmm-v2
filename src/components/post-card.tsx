@@ -1,4 +1,5 @@
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { MessageCircle, Share2 } from "lucide-react";
+import { TombolSuka } from "@/components/app/tombol-suka";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { waktuPost } from "@/lib/waktu";
@@ -14,6 +15,8 @@ export type DataPost = {
   username: string | null;
   role: string | null;
   gambar?: GambarPost[];
+  jumlahSuka?: number;
+  disukai?: boolean;
 };
 
 function Galeri({ gambar }: { gambar: GambarPost[] }) {
@@ -54,7 +57,7 @@ function Galeri({ gambar }: { gambar: GambarPost[] }) {
   );
 }
 
-export function PostCard({ data }: { data: DataPost }) {
+export function PostCard({ data, masuk = false }: { data: DataPost; masuk?: boolean }) {
   return (
     <article className="rounded-2xl border p-4">
       <div className="flex items-start gap-3">
@@ -77,14 +80,18 @@ export function PostCard({ data }: { data: DataPost }) {
         <p className="mt-3 text-[15px] leading-relaxed break-words whitespace-pre-wrap">{data.isi}</p>
       )}
 
-      <div className="text-muted-foreground/50 mt-3 flex gap-6 border-t pt-3">
-        <span title="Segera">
-          <Heart className="size-5" />
-        </span>
-        <span title="Segera">
+      <div className="text-muted-foreground mt-3 flex items-center gap-6 border-t pt-3">
+        <TombolSuka
+          key={`${data.id}-${data.disukai ? 1 : 0}-${data.jumlahSuka ?? 0}`}
+          postId={data.id}
+          masuk={masuk}
+          awalSuka={data.disukai ?? false}
+          awalJumlah={data.jumlahSuka ?? 0}
+        />
+        <span title="Segera" className="opacity-50">
           <MessageCircle className="size-5" />
         </span>
-        <span title="Segera">
+        <span title="Segera" className="opacity-50">
           <Share2 className="size-5" />
         </span>
       </div>
