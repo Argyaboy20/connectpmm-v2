@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Search, UserCheck, Users } from "lucide-react";
+import { ScrollText, Search, UserCheck, Users } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNotNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
@@ -10,12 +10,15 @@ import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { AksiVerifikasi } from "@/components/app/aksi-verifikasi";
 import { AksiBlokir } from "@/components/app/aksi-blokir";
+import { DaftarLog } from "@/components/app/daftar-log";
+import { ambilLog } from "@/lib/log";
 
 export const metadata = { title: "Moderasi · PMM Connect" };
 
 const TAB = [
   { kunci: "verifikasi", label: "Verifikasi", ikon: UserCheck },
   { kunci: "pengguna", label: "Pengguna", ikon: Users },
+  { kunci: "log", label: "Log", ikon: ScrollText },
 ] as const;
 
 async function DaftarVerifikasi() {
@@ -175,6 +178,11 @@ async function DaftarPengguna({ q, idSaya }: { q: string; idSaya: string }) {
   );
 }
 
+async function HalamanLog() {
+  const log = await ambilLog();
+  return <DaftarLog awal={log.item} kursorAwal={log.kursorBerikut} />;
+}
+
 export default async function Moderasi({
   searchParams,
 }: {
@@ -185,14 +193,14 @@ export default async function Moderasi({
   if (pelaku.role !== "KOORDINATOR" || pelaku.status === "DIBLOKIR") redirect("/");
 
   const param = await searchParams;
-  const tab = param.tab === "pengguna" ? "pengguna" : "verifikasi";
+  const tab = param.tab === "pengguna" ? "pengguna" : param.tab === "log" ? "log" : "verifikasi";
   const q = (param.q ?? "").trim().slice(0, 50);
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Moderasi</h1>
 
-      <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
+      <div className="grid grid-cols-3 overflow-hidden rounded-xl border">
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
           <Link
             key={kunci}
@@ -207,7 +215,13 @@ export default async function Moderasi({
         ))}
       </div>
 
-      {tab === "verifikasi" ? <DaftarVerifikasi /> : <DaftarPengguna q={q} idSaya={pelaku.id} />}
+      {tab === "verifikasi" ? (
+        <DaftarVerifikasi />
+      ) : tab === "pengguna" ? (
+        <DaftarPengguna q={q} idSaya={pelaku.id} />
+      ) : (
+        <HalamanLog />
+      )}
     </div>
   );
 }
