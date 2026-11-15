@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { post, postGambar } from "@/db/schema";
 import { BATAS_FOTO, BATAS_POST_PER_JAM, BATAS_UKURAN_FOTO } from "@/lib/batas";
 import { deteksiGambar } from "@/lib/jenis-gambar";
-import { ambilMedia } from "@/lib/r2";
+import { hapusFile, simpanFile } from "@/lib/penyimpanan";
 import { ambilSesi } from "@/lib/sesi";
 import { skemaCaption } from "@/lib/validasi-post";
 
@@ -59,14 +59,11 @@ export async function POST(req: Request) {
     return galat(429, `Batas ${BATAS_POST_PER_JAM} post per jam tercapai. Coba lagi nanti.`);
   }
 
-  const media = ambilMedia();
   const postId = crypto.randomUUID();
   const kunci = siap.map((s) => `post/${postId}/${crypto.randomUUID()}.${s.ekstensi}`);
 
   try {
-    await Promise.all(
-      siap.map((s, i) => media.put(kunci[i], s.bytes, { httpMetadata: { contentType: s.mime } })),
-    );
+    await Promise.all(siap.map((s, i) => simpanFile(kunci[i], s.bytes, s.mime)));
     await db.insert(post).values({
       id: postId,
       penulisId: sesi.user.id,
@@ -85,7 +82,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("Gagal menyimpan post foto:", e);
     await db.delete(post).where(eq(post.id, postId)).catch(() => {});
-    await media.delete(kunci).catch(() => {});
+    await hapusFile(kunci).catch(() => {});
     return galat(500, "Gagal menyimpan foto. Coba lagi.");
   }
 

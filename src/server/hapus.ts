@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { komentar, logModerasi, post, postGambar } from "@/db/schema";
 import { ambilPelaku } from "@/lib/pelaku";
-import { ambilMedia } from "@/lib/r2";
+import { hapusFile } from "@/lib/penyimpanan";
 import { skemaAlasan } from "@/lib/validasi-moderasi";
 import type { HasilAksi } from "./post";
 
@@ -74,7 +74,7 @@ export async function hapusPost(postId: string, alasan?: string): Promise<HasilA
     .where(eq(postGambar.postId, id.data));
   if (gambar.length > 0) {
     try {
-      await ambilMedia().delete(gambar.map((g) => g.kunci));
+      await hapusFile(gambar.map((g) => g.kunci));
       await db.delete(postGambar).where(eq(postGambar.postId, id.data));
     } catch (e) {
       console.error("Gagal membersihkan foto post", id.data, e);
