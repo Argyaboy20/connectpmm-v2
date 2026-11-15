@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, X } from "lucide-react";
-import { BATAS_CAPTION, BATAS_FOTO } from "@/lib/batas";
+import { BATAS_CAPTION, BATAS_FOTO, BATAS_TOTAL_FOTO } from "@/lib/batas";
 import { kompresFoto } from "@/lib/kompres-gambar";
 
 type Pilihan = { id: string; file: File; url: string };
@@ -54,8 +54,9 @@ export function FormBuatPost() {
     try {
       const form = new FormData();
       form.append("caption", caption);
+      const batas = Math.floor(BATAS_TOTAL_FOTO / pilihan.length);
       for (const p of pilihan) {
-        const hasil = await kompresFoto(p.file);
+        const hasil = await kompresFoto(p.file, batas);
         form.append("foto", hasil.blob, "foto");
         form.append("lebar", String(hasil.lebar));
         form.append("tinggi", String(hasil.tinggi));

@@ -1,5 +1,3 @@
-import { BATAS_UKURAN_FOTO } from "./batas";
-
 const SISI_MAKS = 1600;
 
 export type FotoSiap = { blob: Blob; lebar: number; tinggi: number };
@@ -8,7 +6,7 @@ function keBlob(canvas: HTMLCanvasElement, tipe: string, mutu: number) {
   return new Promise<Blob | null>((res) => canvas.toBlob(res, tipe, mutu));
 }
 
-export async function kompresFoto(file: File): Promise<FotoSiap> {
+export async function kompresFoto(file: File, batas: number): Promise<FotoSiap> {
   let bmp: ImageBitmap;
   try {
     bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -34,7 +32,7 @@ export async function kompresFoto(file: File): Promise<FotoSiap> {
   for (const tipe of ["image/webp", "image/jpeg"]) {
     for (const mutu of [0.82, 0.7, 0.55]) {
       const blob = await keBlob(canvas, tipe, mutu);
-      if (blob && blob.type === tipe && blob.size <= BATAS_UKURAN_FOTO) {
+      if (blob && blob.type === tipe && blob.size <= batas) {
         return { blob, lebar, tinggi };
       }
     }

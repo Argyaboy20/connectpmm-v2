@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { post, postGambar } from "@/db/schema";
-import { BATAS_FOTO, BATAS_POST_PER_JAM, BATAS_UKURAN_FOTO } from "@/lib/batas";
+import { BATAS_FOTO, BATAS_POST_PER_JAM, BATAS_TOTAL_FOTO } from "@/lib/batas";
 import { deteksiGambar } from "@/lib/jenis-gambar";
 import { hapusFile, simpanFile } from "@/lib/penyimpanan";
 import { ambilSesi } from "@/lib/sesi";
@@ -37,13 +37,14 @@ export async function POST(req: Request) {
   const berkas = form.getAll("foto").filter((f): f is File => f instanceof File);
   if (berkas.length === 0) return galat(400, "Pilih minimal 1 foto.");
   if (berkas.length > BATAS_FOTO) return galat(400, `Maksimal ${BATAS_FOTO} foto.`);
+  const total = berkas.reduce((jumlah, f) => jumlah + f.size, 0);
+  if (total > BATAS_TOTAL_FOTO) return galat(400, "Total foto maksimal 4 MB per post.");
 
   const lebar = form.getAll("lebar");
   const tinggi = form.getAll("tinggi");
 
   const siap: { bytes: Uint8Array; mime: string; ekstensi: string }[] = [];
   for (const f of berkas) {
-    if (f.size > BATAS_UKURAN_FOTO) return galat(400, "Satu foto maksimal 2 MB.");
     const bytes = new Uint8Array(await f.arrayBuffer());
     const jenis = deteksiGambar(bytes);
     if (!jenis) return galat(400, "Hanya foto JPEG, PNG, atau WebP.");
