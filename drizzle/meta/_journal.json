@@ -8,6 +8,13 @@
       "when": 1794597511493,
       "tag": "0000_boring_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794731537312,
+      "tag": "0001_fluffy_hitman",
+      "breakpoints": true
     }
   ]
 }
