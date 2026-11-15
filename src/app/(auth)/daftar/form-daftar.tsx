@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Circle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,10 +32,15 @@ function buatUsername(nama: string) {
   return `${dasar}_${acak}`;
 }
 
-function pesanDariError(error: { code?: string; message?: string }) {
+function pesanDariError(error: { code?: string; message?: string; status?: number }) {
   if (error.code?.startsWith("USER_ALREADY_EXISTS")) {
     return "Email ini sudah terdaftar. Coba masuk.";
   }
+  if (error.code?.startsWith("USERNAME_IS_ALREADY_TAKEN")) {
+    return "Terjadi bentrokan nama pengguna. Coba kirim lagi.";
+  }
+  if (error.status === 403) return "Verifikasi keamanan gagal. Coba lagi.";
+  if (error.status === 429) return "Terlalu banyak percobaan. Coba lagi beberapa saat lagi.";
   return error.message || "Pendaftaran gagal. Coba lagi.";
 }
 
@@ -63,10 +69,13 @@ export function FormDaftar({ daftarPt }: { daftarPt: string[] }) {
   const [lihat, setLihat] = useState(false);
   const [pesanError, setPesanError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
 
   const duaLangkah = role !== "UMUM";
   const tampilAkun = !duaLangkah || langkah === 2;
   const indeksRole = DAFTAR_ROLE.findIndex((r) => r.nilai === role);
+  const perluToken = tampilAkun && !token;
 
   const aturan = [
     { ok: password.length >= 8, teks: "Minimal 8 karakter" },
@@ -110,6 +119,11 @@ export function FormDaftar({ daftarPt }: { daftarPt: string[] }) {
       return;
     }
 
+    if (!token) {
+      setPesanError("Verifikasi keamanan belum selesai. Tunggu sebentar lalu coba lagi.");
+      return;
+    }
+
     const tambahan: Record<string, string> = {};
     if (role === "PESERTA") {
       tambahan.roleDiminta = "PESERTA";
@@ -125,23 +139,19 @@ export function FormDaftar({ daftarPt }: { daftarPt: string[] }) {
     }
 
     setLoading(true);
-    const daftarSekali = () =>
-      authClient.signUp.email({
-        name: nama.trim(),
-        email: email.trim(),
-        password,
-        username: buatUsername(nama),
-        ...tambahan,
-      });
-
-    let hasil = await daftarSekali();
-    for (let i = 0; i < 2 && hasil.error?.code?.startsWith("USERNAME_IS_ALREADY_TAKEN"); i++) {
-      hasil = await daftarSekali();
-    }
+    const hasil = await authClient.signUp.email({
+      name: nama.trim(),
+      email: email.trim(),
+      password,
+      username: buatUsername(nama),
+      ...tambahan,
+      fetchOptions: { headers: { "x-captcha-response": token } },
+    });
     setLoading(false);
 
     if (hasil.error) {
       setPesanError(pesanDariError(hasil.error));
+      turnstile.current?.reset();
       return;
     }
     router.push("/");
@@ -343,6 +353,7 @@ export function FormDaftar({ daftarPt }: { daftarPt: string[] }) {
               Akunmu akan diverifikasi Koordinator. Selama menunggu, kamu masuk sebagai Umum.
             </p>
           )}
+          <Turnstile ref={turnstile} onToken={setToken} />
         </div>
       )}
 
@@ -352,13 +363,13 @@ export function FormDaftar({ daftarPt }: { daftarPt: string[] }) {
             <ArrowLeft className="size-4" />
             Kembali
           </Button>
-          <Button type="submit" disabled={loading} className="bg-brand-gradient h-10 text-white">
+          <Button type="submit" disabled={loading || perluToken} className="bg-brand-gradient h-10 text-white">
             {loading && <Loader2 className="size-4 animate-spin" />}
             Daftar
           </Button>
         </div>
       ) : (
-        <Button type="submit" disabled={loading} className="bg-brand-gradient h-10 w-full text-white">
+        <Button type="submit" disabled={loading || perluToken} className="bg-brand-gradient h-10 w-full text-white">
           {loading && <Loader2 className="size-4 animate-spin" />}
           {duaLangkah ? "Lanjut" : "Daftar"}
         </Button>

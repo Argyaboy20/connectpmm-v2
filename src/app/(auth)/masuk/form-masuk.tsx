@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+function pesanMasuk(error: { status?: number; code?: string }) {
+  if (error.status === 401 || error.code?.startsWith("INVALID_")) {
+    return "Email/username atau password salah.";
+  }
+  if (error.status === 403) return "Verifikasi keamanan gagal. Coba lagi.";
+  if (error.status === 429) return "Terlalu banyak percobaan. Coba lagi beberapa saat lagi.";
+  return "Terjadi kesalahan. Coba lagi.";
+}
 
 export function FormMasuk() {
   const router = useRouter();
@@ -16,18 +26,26 @@ export function FormMasuk() {
   const [lihat, setLihat] = useState(false);
   const [pesanError, setPesanError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
 
   async function kirim(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPesanError("");
+    if (!token) {
+      setPesanError("Verifikasi keamanan belum selesai. Tunggu sebentar lalu coba lagi.");
+      return;
+    }
     setLoading(true);
     const nilai = akun.trim();
+    const fetchOptions = { headers: { "x-captcha-response": token } };
     const { error } = nilai.includes("@")
-      ? await authClient.signIn.email({ email: nilai, password })
-      : await authClient.signIn.username({ username: nilai, password });
+      ? await authClient.signIn.email({ email: nilai, password, fetchOptions })
+      : await authClient.signIn.username({ username: nilai, password, fetchOptions });
     setLoading(false);
     if (error) {
-      setPesanError("Email/username atau password salah.");
+      setPesanError(pesanMasuk(error));
+      turnstile.current?.reset();
       return;
     }
     router.push("/");
@@ -84,7 +102,13 @@ export function FormMasuk() {
         </div>
       </div>
 
-      <Button type="submit" disabled={loading} className="bg-brand-gradient h-10 w-full text-white">
+      <Turnstile ref={turnstile} onToken={setToken} tampilan="interaction-only" />
+
+      <Button
+        type="submit"
+        disabled={loading || !token}
+        className="bg-brand-gradient h-10 w-full text-white"
+      >
         {loading && <Loader2 className="size-4 animate-spin" />}
         Masuk
       </Button>
