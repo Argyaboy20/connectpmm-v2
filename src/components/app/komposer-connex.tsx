@@ -6,7 +6,7 @@ import { AvatarInisial } from "@/components/avatar-inisial";
 import { BATAS_CONNEX } from "@/lib/batas";
 import { buatConnex } from "@/server/post";
 
-export function KomposerConnex({ nama }: { nama: string }) {
+export function KomposerConnex({ nama, foto = null }: { nama: string; foto?: string | null }) {
   const [isi, setIsi] = useState("");
   const [pesan, setPesan] = useState("");
   const [proses, mulai] = useTransition();
@@ -26,7 +26,7 @@ export function KomposerConnex({ nama }: { nama: string }) {
   return (
     <div className="rounded-2xl border p-4">
       <div className="flex gap-3">
-        <AvatarInisial nama={nama} />
+        <AvatarInisial nama={nama} foto={foto} />
         <textarea
           value={isi}
           onChange={(e) => setIsi(e.target.value)}

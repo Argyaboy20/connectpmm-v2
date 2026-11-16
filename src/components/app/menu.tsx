@@ -16,6 +16,6 @@ export const MENU: ItemMenu[] = [
   { kunci: "pesan", label: "Pesan", ikon: Mail, href: "/pesan", siap: false },
   { kunci: "notifikasi", label: "Notifikasi", ikon: Bell, href: "/notifikasi", siap: false },
   { kunci: "buat", label: "Buat", ikon: PlusCircle, href: "/buat", siap: true, perluLogin: true },
-  { kunci: "profil", label: "Profil", ikon: UserCircle, href: "/profil", siap: false, perluLogin: true },
+  { kunci: "profil", label: "Profil", ikon: UserCircle, href: "/profil", siap: true, perluLogin: true },
   { kunci: "moderasi", label: "Moderasi", ikon: ShieldCheck, href: "/moderasi", siap: true, perluLogin: true, hanyaKoordinator: true },
 ];

@@ -2,21 +2,26 @@ import Link from "next/link";
 import { Users } from "lucide-react";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
+import { FormFoto } from "@/components/app/form-foto";
+import { FormUsername } from "@/components/app/form-username";
 import type { Pengguna } from "@/lib/pengguna";
 
 export function PanelKanan({ pengguna }: { pengguna: Pengguna | null }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-80 shrink-0 flex-col gap-6 border-l p-6 xl:flex">
       {pengguna ? (
-        <div className="flex items-center gap-3">
-          <AvatarInisial nama={pengguna.nama} ukuran={48} />
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{pengguna.nama}</p>
-            <p className="text-muted-foreground truncate text-sm">@{pengguna.username}</p>
-            <div className="mt-1">
-              <RoleBadge role={pengguna.role} />
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <FormFoto nama={pengguna.nama} foto={pengguna.foto ?? null} ukuran={48} />
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{pengguna.nama}</p>
+              <p className="text-muted-foreground truncate text-sm">@{pengguna.username}</p>
+              <div className="mt-1">
+                <RoleBadge role={pengguna.role} />
+              </div>
             </div>
           </div>
+          {pengguna.username && <FormUsername key={pengguna.username} awal={pengguna.username} />}
         </div>
       ) : (
         <div className="space-y-3 rounded-2xl border p-4">

@@ -1,3 +1,4 @@
+import { BATAS_UKURAN_AVATAR } from "./batas";
 const SISI_MAKS = 1600;
 
 export type FotoSiap = { blob: Blob; lebar: number; tinggi: number };
@@ -35,6 +36,41 @@ export async function kompresFoto(file: File, batas: number): Promise<FotoSiap> 
       if (blob && blob.type === tipe && blob.size <= batas) {
         return { blob, lebar, tinggi };
       }
+    }
+  }
+  throw new Error("Foto terlalu besar setelah dikecilkan. Coba foto lain.");
+}
+
+const SISI_AVATAR = 400;
+
+export async function kompresAvatar(file: File): Promise<Blob> {
+  let bmp: ImageBitmap;
+  try {
+    bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new Error("Foto tidak bisa dibaca. Coba foto lain.");
+  }
+
+  const sisi = Math.min(bmp.width, bmp.height);
+  const sx = Math.floor((bmp.width - sisi) / 2);
+  const sy = Math.floor((bmp.height - sisi) / 2);
+  const ukuran = Math.min(SISI_AVATAR, sisi);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = ukuran;
+  canvas.height = ukuran;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    bmp.close();
+    throw new Error("Browser tidak mendukung pemrosesan foto.");
+  }
+  ctx.drawImage(bmp, sx, sy, sisi, sisi, 0, 0, ukuran, ukuran);
+  bmp.close();
+
+  for (const tipe of ["image/webp", "image/jpeg"]) {
+    for (const mutu of [0.85, 0.7, 0.55]) {
+      const blob = await keBlob(canvas, tipe, mutu);
+      if (blob && blob.type === tipe && blob.size <= BATAS_UKURAN_AVATAR) return blob;
     }
   }
   throw new Error("Foto terlalu besar setelah dikecilkan. Coba foto lain.");

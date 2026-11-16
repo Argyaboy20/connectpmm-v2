@@ -12,6 +12,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const pengguna: Pengguna | null = u
     ? {
         nama: u.name,
+        id: u.id,
+        foto: u.image ?? null,
         username: u.username ?? null,
         role: u.role ?? "UMUM",
         roleDiminta: u.roleDiminta ?? null,

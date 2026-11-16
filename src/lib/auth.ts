@@ -27,6 +27,8 @@ export const auth = betterAuth({
       disetujuiPada: { type: "date", required: false, input: false },
       roleDitolak: { type: "string", required: false, input: false },
       alasanPenolakan: { type: "string", required: false, input: false },
+      usernameDiubahPada: { type: "date", required: false, input: false },
+      fotoDiubahPada: { type: "date", required: false, input: false },
     },
   },
   plugins: [
@@ -42,6 +44,9 @@ export const auth = betterAuth({
   ],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/update-user") {
+        throw new APIError("FORBIDDEN", { message: "Ubah profil lewat halaman Profil." });
+      }
       if (ctx.path !== "/sign-up/email") return;
       const hasil = skemaDaftar.safeParse(ctx.body);
       if (!hasil.success) {

@@ -9,7 +9,30 @@ const WARNA = [
   "bg-fuchsia-500",
 ];
 
-export function AvatarInisial({ nama, ukuran = 40 }: { nama: string; ukuran?: number }) {
+export function AvatarInisial({
+  nama,
+  ukuran = 40,
+  foto = null,
+}: {
+  nama: string;
+  ukuran?: number;
+  foto?: string | null;
+}) {
+  if (foto) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={foto}
+        alt=""
+        width={ukuran}
+        height={ukuran}
+        loading="lazy"
+        decoding="async"
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: ukuran, height: ukuran }}
+      />
+    );
+  }
   const kata = nama.trim().split(/\s+/);
   const inisial = ((kata[0]?.[0] ?? "") + (kata[1]?.[0] ?? "")).toUpperCase() || "?";
   let hash = 0;

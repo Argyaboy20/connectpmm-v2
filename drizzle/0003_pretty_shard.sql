@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "foto_diubah_pada" timestamp;

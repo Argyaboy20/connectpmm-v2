@@ -48,7 +48,7 @@ export default async function Beranda({
 
       {tab === "connex" &&
         (sesi ? (
-          <KomposerConnex nama={sesi.user.name} />
+          <KomposerConnex nama={sesi.user.name} foto={sesi.user.image ?? null} />
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 text-sm">
             <p className="text-muted-foreground">Masuk untuk membagikan ceritamu.</p>
@@ -64,7 +64,7 @@ export default async function Beranda({
         ))}
 
       <DaftarFeed
-        key={`${tab}:${feed.item[0]?.id ?? "kosong"}`}
+        key={`${tab}:${feed.item[0]?.id ?? "kosong"}:${sesi?.user.image ?? ""}`}
         tab={tab}
         awal={feed.item}
         kursorAwal={feed.kursorBerikut}

@@ -34,6 +34,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
       nama: user.name,
       username: user.username,
       role: user.role,
+      foto: user.image,
     })
     .from(post)
     .innerJoin(user, eq(post.penulisId, user.id))
@@ -66,6 +67,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
         nama: user.name,
         username: user.username,
         role: user.role,
+        foto: user.image,
       })
       .from(komentar)
       .innerJoin(user, eq(komentar.penulisId, user.id))
@@ -105,7 +107,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
               Akunmu sedang diblokir.
             </p>
           ) : (
-            <FormKomentar postId={p.id} nama={sesi.user.name} />
+            <FormKomentar postId={p.id} nama={sesi.user.name} foto={sesi.user.image ?? null} />
           )
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 text-sm">
@@ -128,7 +130,7 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
         ) : (
           daftarKomentar.map((k) => (
             <article key={k.id} className="flex gap-3 rounded-2xl border p-4">
-              <AvatarInisial nama={k.nama} />
+              <AvatarInisial nama={k.nama} foto={k.foto} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="truncate font-semibold">{k.nama}</span>

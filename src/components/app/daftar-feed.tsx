@@ -16,9 +16,10 @@ type Props = {
   masuk: boolean;
   idSaya: string | null;
   koordinator: boolean;
+  penulisId?: string;
 };
 
-export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }: Props) {
+export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator, penulisId }: Props) {
   const router = useRouter();
   const [item, setItem] = useState(awal);
   const [kursor, setKursor] = useState(kursorAwal);
@@ -37,7 +38,7 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }
     setMemuat(true);
     setGalat("");
     try {
-      const hasil = await muatFeed(tab === "connex" ? "CONNEX" : "POST", k);
+      const hasil = await muatFeed(tab === "connex" ? "CONNEX" : "POST", k, penulisId);
       if (!hasil.ok) {
         setGalat(hasil.pesan);
         return;
@@ -54,7 +55,7 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }
       sibuk.current = false;
       setMemuat(false);
     }
-  }, [tab]);
+  }, [tab, penulisId]);
 
   useEffect(() => {
     const el = penanda.current;
@@ -79,6 +80,7 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }
   }, []);
 
   useEffect(() => {
+    if (penulisId) return;
     const tipe = tab === "connex" ? "CONNEX" : "POST";
     let aktif = true;
     let sedangCek = false;
@@ -111,7 +113,7 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }
       clearInterval(timer);
       document.removeEventListener("visibilitychange", saatTampil);
     };
-  }, [tab, kursorTeratas]);
+  }, [tab, kursorTeratas, penulisId]);
 
   function tampilkan() {
     setBaru(null);
@@ -145,7 +147,7 @@ export function DaftarFeed({ tab, awal, kursorAwal, masuk, idSaya, koordinator }
             <MessageCircle className="size-10 opacity-40" />
           )}
           <p>{tab === "post" ? "Belum ada post foto." : "Belum ada Connex."}</p>
-          <p>Jadilah yang pertama berbagi cerita.</p>
+          {!penulisId && <p>Jadilah yang pertama berbagi cerita.</p>}
         </div>
       </div>
     );

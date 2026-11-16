@@ -27,6 +27,7 @@ async function DaftarVerifikasi() {
       id: user.id,
       nama: user.name,
       username: user.username,
+      foto: user.image,
       email: user.email,
       roleDiminta: user.roleDiminta,
       nim: user.nim,
@@ -64,7 +65,7 @@ async function DaftarVerifikasi() {
           return (
             <article key={p.id} className="space-y-3 rounded-2xl border p-4">
               <div className="flex items-start gap-3">
-                <AvatarInisial nama={p.nama} />
+                <AvatarInisial nama={p.nama} foto={p.foto} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="truncate font-semibold">{p.nama}</span>
@@ -106,6 +107,7 @@ async function DaftarPengguna({ q, idSaya }: { q: string; idSaya: string }) {
       id: user.id,
       nama: user.name,
       username: user.username,
+      foto: user.image,
       email: user.email,
       role: user.role,
       status: user.status,
@@ -152,7 +154,7 @@ async function DaftarPengguna({ q, idSaya }: { q: string; idSaya: string }) {
       ) : (
         daftar.map((p) => (
           <article key={p.id} className="flex items-start gap-3 rounded-2xl border p-4">
-            <AvatarInisial nama={p.nama} />
+            <AvatarInisial nama={p.nama} foto={p.foto} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="truncate font-semibold">{p.nama}</span>

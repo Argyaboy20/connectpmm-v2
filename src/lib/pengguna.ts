@@ -5,4 +5,6 @@ export type Pengguna = {
   roleDiminta: string | null;
   roleDitolak?: string | null;
   alasanPenolakan?: string | null;
+  id?: string;
+  foto?: string | null;
 };

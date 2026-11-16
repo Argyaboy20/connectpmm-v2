@@ -6,7 +6,15 @@ import { AvatarInisial } from "@/components/avatar-inisial";
 import { BATAS_KOMENTAR } from "@/lib/batas";
 import { buatKomentar } from "@/server/komentar";
 
-export function FormKomentar({ postId, nama }: { postId: string; nama: string }) {
+export function FormKomentar({
+  postId,
+  nama,
+  foto = null,
+}: {
+  postId: string;
+  nama: string;
+  foto?: string | null;
+}) {
   const [isi, setIsi] = useState("");
   const [pesan, setPesan] = useState("");
   const [proses, mulai] = useTransition();
@@ -26,7 +34,7 @@ export function FormKomentar({ postId, nama }: { postId: string; nama: string })
   return (
     <div className="rounded-2xl border p-4">
       <div className="flex gap-3">
-        <AvatarInisial nama={nama} />
+        <AvatarInisial nama={nama} foto={foto} />
         <textarea
           value={isi}
           onChange={(e) => setIsi(e.target.value)}

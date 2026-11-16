@@ -16,6 +16,7 @@ export type DataPost = {
   nama: string;
   username: string | null;
   role: string | null;
+  foto?: string | null;
   gambar?: GambarPost[];
   jumlahSuka?: number;
   disukai?: boolean;
@@ -76,7 +77,7 @@ export function PostCard({
   return (
     <article className="rounded-2xl border p-4">
       <div className="flex items-start gap-3">
-        <AvatarInisial nama={data.nama} />
+        <AvatarInisial nama={data.nama} foto={data.foto} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="truncate font-semibold">{data.nama}</span>

@@ -7,3 +7,7 @@ export const BATAS_KOMENTAR = 300;
 export const BATAS_KOMENTAR_PER_JAM = 20;
 export const MIN_ALASAN = 5;
 export const BATAS_ALASAN = 200;
+export const BATAS_BIO = 160;
+export const JEDA_GANTI_USERNAME_JAM = 24;
+export const BATAS_UKURAN_AVATAR = 300 * 1024;
+export const JEDA_GANTI_FOTO_DETIK = 30;

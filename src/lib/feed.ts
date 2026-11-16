@@ -23,8 +23,10 @@ export async function ambilFeed(opsi: {
   tipe: "POST" | "CONNEX";
   idSaya: string | null;
   kursor?: KursorFeed | null;
+  penulisId?: string;
 }): Promise<HasilFeed> {
   const syarat: SQL[] = [eq(post.tipe, opsi.tipe), isNull(post.dihapusPada)];
+  if (opsi.penulisId) syarat.push(eq(post.penulisId, opsi.penulisId));
   if (opsi.kursor) {
     syarat.push(
       sql`(${post.dibuatPada}, ${post.id}) < (${opsi.kursor.waktu}::timestamptz, ${opsi.kursor.id})`,
@@ -41,6 +43,7 @@ export async function ambilFeed(opsi: {
       nama: user.name,
       username: user.username,
       role: user.role,
+      foto: user.image,
       kursorWaktu: sql<string>`to_char(${post.dibuatPada} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
     })
     .from(post)

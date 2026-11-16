@@ -1,6 +1,7 @@
 import { ambilFile } from "@/lib/penyimpanan";
 
 const POLA = /^post\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg|png)$/;
+const POLA_AVATAR = /^avatar\/[A-Za-z0-9_-]{10,64}\/[0-9a-f-]{36}\.(webp|jpg|png)$/;
 
 export async function GET(
   _req: Request,
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   const { kunci } = await params;
   const k = kunci.join("/");
-  if (!POLA.test(k)) return new Response("Tidak ditemukan", { status: 404 });
+  if (!POLA.test(k) && !POLA_AVATAR.test(k)) return new Response("Tidak ditemukan", { status: 404 });
 
   const file = await ambilFile(k);
   if (!file) return new Response("Tidak ditemukan", { status: 404 });

@@ -15,6 +15,20 @@
       "when": 1794731537312,
       "tag": "0001_fluffy_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794825962049,
+      "tag": "0002_productive_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794826606127,
+      "tag": "0003_pretty_shard",
+      "breakpoints": true
     }
   ]
 }
