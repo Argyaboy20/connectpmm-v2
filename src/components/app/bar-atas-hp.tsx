@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
+import { LencanaNotifikasi } from "./lencana-notifikasi";
 
 export function BarAtasHp({ pengguna }: { pengguna: Pengguna | null }) {
   const kunci = pengguna?.role === "KOORDINATOR" ? ["notifikasi", "pesan"] : ["pesan"];
@@ -38,7 +39,10 @@ export function BarAtasHp({ pengguna }: { pengguna: Pengguna | null }) {
                 aria-label={m.label}
                 className="text-foreground hover:text-primary p-2"
               >
-                <Ikon className="size-5" />
+                <span className="relative inline-flex">
+                  <Ikon className="size-5" />
+                  {m.kunci === "notifikasi" && <LencanaNotifikasi />}
+                </span>
               </Link>
             );
           })}

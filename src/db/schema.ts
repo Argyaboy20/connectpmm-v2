@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, integer, index, unique, primaryKey, check } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, index, uniqueIndex, unique, primaryKey, check } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export * from "./auth-schema";
@@ -81,3 +81,23 @@ export const logModerasi = pgTable("log_moderasi", {
   catatan: text("catatan"),
   dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
 });
+
+export const notifikasi = pgTable(
+  "notifikasi",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    penerimaId: text("penerima_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    aktorId: text("aktor_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    tipe: text("tipe").notNull(),
+    postId: text("post_id").notNull().references(() => post.id, { onDelete: "cascade" }),
+    komentarId: text("komentar_id").references(() => komentar.id, { onDelete: "cascade" }),
+    dibacaPada: waktu("dibaca_pada"),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+  },
+  (t) => [
+    check("notifikasi_tipe_check", sql`${t.tipe} in ('SUKA','KOMENTAR')`),
+    index("notifikasi_penerima_waktu_idx").on(t.penerimaId, t.dibuatPada),
+    index("notifikasi_belum_dibaca_idx").on(t.penerimaId).where(sql`${t.dibacaPada} is null`),
+    uniqueIndex("notifikasi_suka_uniq").on(t.aktorId, t.postId).where(sql`${t.tipe} = 'SUKA'`),
+  ],
+);

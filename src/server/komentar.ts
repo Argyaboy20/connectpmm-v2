@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, gte, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { komentar, post } from "@/db/schema";
+import { komentar, notifikasi, post } from "@/db/schema";
 import { BATAS_KOMENTAR_PER_JAM } from "@/lib/batas";
 import { ambilSesi } from "@/lib/sesi";
 import { skemaKomentar } from "@/lib/validasi-komentar";
@@ -26,7 +26,7 @@ export async function buatKomentar(postId: string, isi: string): Promise<HasilAk
   }
 
   const ada = await db
-    .select({ id: post.id })
+    .select({ id: post.id, penulisId: post.penulisId })
     .from(post)
     .where(and(eq(post.id, id.data), isNull(post.dihapusPada)))
     .limit(1);
@@ -44,7 +44,23 @@ export async function buatKomentar(postId: string, isi: string): Promise<HasilAk
     };
   }
 
-  await db.insert(komentar).values({ postId: id.data, penulisId: sesi.user.id, isi: hasil.data });
+  const [baru] = await db
+    .insert(komentar)
+    .values({ postId: id.data, penulisId: sesi.user.id, isi: hasil.data })
+    .returning({ id: komentar.id });
+  if (ada[0].penulisId !== sesi.user.id) {
+    try {
+      await db.insert(notifikasi).values({
+        penerimaId: ada[0].penulisId,
+        aktorId: sesi.user.id,
+        tipe: "KOMENTAR",
+        postId: id.data,
+        komentarId: baru.id,
+      });
+    } catch (e) {
+      console.error("Gagal membuat notifikasi komentar", e);
+    }
+  }
   revalidatePath(`/post/${id.data}`);
   revalidatePath("/");
   return { ok: true };

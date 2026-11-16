@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, LogOut, Menu as IkonMenu } from "lucide-reac
 import { useKeluar } from "@/lib/use-keluar";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
+import { LencanaNotifikasi } from "./lencana-notifikasi";
 import { menuAktif } from "./menu-aktif";
 
 export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
@@ -73,7 +74,10 @@ export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
               title={m.label}
               className={`${kelas} ${aktif ? "bg-brand-gradient text-white" : "hover:bg-muted"}`}
             >
-              <Ikon className="size-5 shrink-0" />
+              <span className="relative inline-flex shrink-0">
+                <Ikon className="size-5" />
+                {m.kunci === "notifikasi" && <LencanaNotifikasi />}
+              </span>
               {!ringkas && <span>{m.label}</span>}
             </Link>
           );

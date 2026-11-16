@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
+import { LencanaNotifikasi } from "./lencana-notifikasi";
 import { menuAktif } from "./menu-aktif";
 
 const ITEM_HP = ["beranda", "pencarian", "buat", "notifikasi", "profil"];
@@ -43,7 +44,10 @@ export function MenuBawah({ pengguna }: { pengguna: Pengguna | null }) {
             aria-label={label}
             className={`${kelas} ${aktif ? "text-primary" : "text-foreground"}`}
           >
-            <Ikon className="size-6" />
+            <span className="relative inline-flex">
+              <Ikon className="size-6" />
+              {m.kunci === "notifikasi" && <LencanaNotifikasi />}
+            </span>
           </Link>
         );
       })}
