@@ -26,10 +26,11 @@ export default async function HalamanProfil({
   searchParams,
 }: {
   params: Promise<{ username: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; dari?: string }>;
 }) {
   const { username } = await params;
-  const { tab: param } = await searchParams;
+  const { tab: param, dari: dariParam } = await searchParams;
+  const dari = dariParam === "pencarian" ? "dari=pencarian" : "";
   const tab = param === "connex" ? "connex" : "post";
 
   const [profil] = await db
@@ -107,7 +108,11 @@ export default async function HalamanProfil({
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
           <Link
             key={kunci}
-            href={kunci === "post" ? alamat : `${alamat}?tab=${kunci}`}
+            href={
+              kunci === "post"
+                ? dari ? `${alamat}?${dari}` : alamat
+                : `${alamat}?${dari ? `${dari}&` : ""}tab=${kunci}`
+            }
             scroll={false}
             className={`flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
               tab === kunci ? "bg-brand-gradient text-white" : "hover:bg-muted"

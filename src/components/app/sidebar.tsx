@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, LogOut, Menu as IkonMenu } from "lucide-react";
 import { useKeluar } from "@/lib/use-keluar";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
+import { menuAktif } from "./menu-aktif";
 
 export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
   const pathname = usePathname();
+  const dari = useSearchParams().get("dari");
   const keluar = useKeluar();
   const [ringkas, setRingkas] = useState(false);
   const [lainnya, setLainnya] = useState(false);
@@ -62,7 +64,7 @@ export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
               </div>
             );
           }
-          const aktif = m.href === "/" ? pathname === "/" : pathname.startsWith(m.href);
+          const aktif = menuAktif(m, pathname, dari, pengguna?.username ?? null);
           const tujuan = m.perluLogin && !pengguna ? "/masuk" : m.href;
           return (
             <Link

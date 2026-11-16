@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
+import { menuAktif } from "./menu-aktif";
 
 const ITEM_HP = ["beranda", "pencarian", "buat", "notifikasi", "profil"];
 const ITEM_KOORDINATOR = ["beranda", "pencarian", "buat", "moderasi", "profil"];
@@ -11,6 +12,7 @@ const LABEL_HP: Record<string, string> = { buat: "Tambah Foto", profil: "Akun" }
 
 export function MenuBawah({ pengguna }: { pengguna: Pengguna | null }) {
   const pathname = usePathname();
+  const dari = useSearchParams().get("dari");
   const kunci = pengguna?.role === "KOORDINATOR" ? ITEM_KOORDINATOR : ITEM_HP;
   const item = kunci.map((k) => MENU.find((m) => m.kunci === k)!);
 
@@ -32,7 +34,7 @@ export function MenuBawah({ pengguna }: { pengguna: Pengguna | null }) {
             </div>
           );
         }
-        const aktif = m.href === "/" ? pathname === "/" : pathname.startsWith(m.href);
+        const aktif = menuAktif(m, pathname, dari, pengguna?.username ?? null);
         const tujuan = m.perluLogin && !pengguna ? "/masuk" : m.href;
         return (
           <Link
