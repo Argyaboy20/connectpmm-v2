@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { laporanGambar, laporanKegiatan } from "@/db/schema";
+import { laporanGambar, laporanKegiatan, notifikasi, user } from "@/db/schema";
 import { BATAS_FOTO, BATAS_LAPORAN_PER_JAM, BATAS_TOTAL_FOTO } from "@/lib/batas";
 import { deteksiGambar } from "@/lib/jenis-gambar";
 import { ambilPelaku } from "@/lib/pelaku";
@@ -91,6 +91,25 @@ export async function POST(req: Request) {
     await db.delete(laporanKegiatan).where(eq(laporanKegiatan.id, laporanId)).catch(() => {});
     await hapusFile(kunci).catch(() => {});
     return galat(500, "Gagal menyimpan laporan. Coba lagi.");
+  }
+
+  try {
+    const koordinator = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.role, "KOORDINATOR"), sql`${user.status} is distinct from 'DIBLOKIR'`));
+    if (koordinator.length > 0) {
+      await db.insert(notifikasi).values(
+        koordinator.map((k) => ({
+          penerimaId: k.id,
+          aktorId: pelaku.id,
+          tipe: "LAPORAN_BARU",
+          laporanId,
+        })),
+      );
+    }
+  } catch (e) {
+    console.error("Gagal membuat notifikasi laporan baru", e);
   }
 
   revalidatePath("/laporan");

@@ -91,12 +91,23 @@ export const notifikasi = pgTable(
     tipe: text("tipe").notNull(),
     postId: text("post_id").references(() => post.id, { onDelete: "cascade" }),
     komentarId: text("komentar_id").references(() => komentar.id, { onDelete: "cascade" }),
+    laporanId: text("laporan_id").references(() => laporanKegiatan.id, { onDelete: "cascade" }),
     dibacaPada: waktu("dibaca_pada"),
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
   },
   (t) => [
-    check("notifikasi_tipe_check", sql`${t.tipe} in ('SUKA','KOMENTAR','IKUTI')`),
-    check("notifikasi_post_check", sql`${t.tipe} = 'IKUTI' or ${t.postId} is not null`),
+    check(
+      "notifikasi_tipe_check",
+      sql`${t.tipe} in ('SUKA','KOMENTAR','IKUTI','LAPORAN_BARU','LAPORAN_DISETUJUI','LAPORAN_DITOLAK')`,
+    ),
+    check(
+      "notifikasi_post_check",
+      sql`${t.tipe} in ('IKUTI','LAPORAN_BARU','LAPORAN_DISETUJUI','LAPORAN_DITOLAK') or ${t.postId} is not null`,
+    ),
+    check(
+      "notifikasi_laporan_check",
+      sql`${t.tipe} not like 'LAPORAN%' or ${t.laporanId} is not null`,
+    ),
     index("notifikasi_penerima_waktu_idx").on(t.penerimaId, t.dibuatPada),
     index("notifikasi_belum_dibaca_idx").on(t.penerimaId).where(sql`${t.dibacaPada} is null`),
     uniqueIndex("notifikasi_suka_uniq").on(t.aktorId, t.postId).where(sql`${t.tipe} = 'SUKA'`),
@@ -162,12 +173,18 @@ export const laporanKegiatan = pgTable(
     tanggalKegiatan: date("tanggal_kegiatan", { mode: "string" }).notNull(),
     lokasi: text("lokasi").notNull(),
     uraian: text("uraian").notNull(),
+    status: text("status").notNull().default("MENUNGGU"),
+    ditolakAlasan: text("ditolak_alasan"),
+    diputuskanOleh: text("diputuskan_oleh").references(() => user.id, { onDelete: "set null" }),
+    diputuskanPada: waktu("diputuskan_pada"),
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
     dihapusPada: waktu("dihapus_pada"),
   },
   (t) => [
+    check("laporan_status_check", sql`${t.status} in ('MENUNGGU','DISETUJUI','DITOLAK')`),
     index("laporan_waktu_idx").on(t.dibuatPada),
     index("laporan_penulis_waktu_idx").on(t.penulisId, t.dibuatPada),
+    index("laporan_status_waktu_idx").on(t.status, t.dibuatPada),
   ],
 );
 

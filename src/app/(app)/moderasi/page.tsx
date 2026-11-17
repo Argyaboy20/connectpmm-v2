@@ -12,7 +12,7 @@ import { AksiVerifikasi } from "@/components/app/aksi-verifikasi";
 import { AksiBlokir } from "@/components/app/aksi-blokir";
 import { DaftarLog } from "@/components/app/daftar-log";
 import { ambilLog } from "@/lib/log";
-import { daftarLaporan } from "@/lib/laporan";
+import { daftarLaporan, type StatusLaporan } from "@/lib/laporan";
 import { MAKS_HALAMAN } from "@/lib/pencarian";
 import { ListaLaporan } from "@/components/app/lista-laporan";
 
@@ -189,22 +189,56 @@ async function HalamanLog() {
   return <DaftarLog awal={log.item} kursorAwal={log.kursorBerikut} />;
 }
 
-async function HalamanLaporan({ idSaya, hal }: { idSaya: string; hal: number }) {
-  const h = await daftarLaporan({ id: idSaya, role: "KOORDINATOR" }, hal);
+const FILTER_LAPORAN = [
+  { kunci: "menunggu", label: "Menunggu", status: "MENUNGGU" },
+  { kunci: "disetujui", label: "Disetujui", status: "DISETUJUI" },
+  { kunci: "ditolak", label: "Ditolak", status: "DITOLAK" },
+  { kunci: "semua", label: "Semua", status: null },
+] as const;
+
+async function HalamanLaporan({
+  idSaya,
+  hal,
+  status,
+}: {
+  idSaya: string;
+  hal: number;
+  status: StatusLaporan | null;
+}) {
+  const h = await daftarLaporan({ id: idSaya, role: "KOORDINATOR" }, hal, status);
+  const aktif = FILTER_LAPORAN.find((f) => f.status === status) ?? FILTER_LAPORAN[0];
+  const dasar = `/moderasi?tab=laporan&status=${aktif.kunci}`;
+
   return (
-    <ListaLaporan
-      item={h.item}
-      idSaya={idSaya}
-      koordinator
-      hrefMuat={h.adaLagi && hal < MAKS_HALAMAN ? `/moderasi?tab=laporan&hal=${hal + 1}` : null}
-    />
+    <div className="space-y-4">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {FILTER_LAPORAN.map((f) => (
+          <Link
+            key={f.kunci}
+            href={`/moderasi?tab=laporan&status=${f.kunci}`}
+            scroll={false}
+            className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              aktif.kunci === f.kunci ? "bg-brand-gradient border-transparent text-white" : "hover:bg-muted"
+            }`}
+          >
+            {f.label}
+          </Link>
+        ))}
+      </div>
+      <ListaLaporan
+        item={h.item}
+        idSaya={idSaya}
+        koordinator
+        hrefMuat={h.adaLagi && hal < MAKS_HALAMAN ? `${dasar}&hal=${hal + 1}` : null}
+      />
+    </div>
   );
 }
 
 export default async function Moderasi({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; q?: string; hal?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string; hal?: string; status?: string }>;
 }) {
   const pelaku = await ambilPelaku();
   if (!pelaku) redirect("/masuk");
@@ -220,6 +254,14 @@ export default async function Moderasi({
           ? "laporan"
           : "verifikasi";
   const hal = Math.min(MAKS_HALAMAN, Math.max(1, parseInt(param.hal ?? "1", 10) || 1));
+  const statusLaporan: StatusLaporan | null =
+    param.status === "semua"
+      ? null
+      : param.status === "disetujui"
+        ? "DISETUJUI"
+        : param.status === "ditolak"
+          ? "DITOLAK"
+          : "MENUNGGU";
   const q = (param.q ?? "").trim().slice(0, 50);
 
   return (
@@ -246,7 +288,7 @@ export default async function Moderasi({
       ) : tab === "pengguna" ? (
         <DaftarPengguna q={q} idSaya={pelaku.id} />
       ) : tab === "laporan" ? (
-        <HalamanLaporan idSaya={pelaku.id} hal={hal} />
+        <HalamanLaporan idSaya={pelaku.id} hal={hal} status={statusLaporan} />
       ) : (
         <HalamanLog />
       )}

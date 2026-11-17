@@ -7,7 +7,14 @@ import { muatLog } from "@/server/log";
 import type { ItemLog, OrangLog } from "@/lib/log";
 
 const PERAN: Record<string, string> = { PESERTA: "Peserta", KOORDINATOR: "Koordinator" };
-const BAHAYA = new Set(["HAPUS_POST", "HAPUS_KOMENTAR", "TOLAK_PEMOHON", "BLOKIR_PENGGUNA"]);
+const BAHAYA = new Set([
+  "HAPUS_POST",
+  "HAPUS_KOMENTAR",
+  "HAPUS_LAPORAN",
+  "TOLAK_LAPORAN",
+  "TOLAK_PEMOHON",
+  "BLOKIR_PENGGUNA",
+]);
 
 function sebut(o: OrangLog | null) {
   if (!o) return "akun yang sudah dihapus";
@@ -31,6 +38,12 @@ function uraikan(i: ItemLog): { badge: string; kalimat: string } {
       return { badge: "Blokir", kalimat: `memblokir ${sebut(i.sasaran)}` };
     case "BUKA_BLOKIR":
       return { badge: "Buka blokir", kalimat: `membuka blokir ${sebut(i.sasaran)}` };
+    case "HAPUS_LAPORAN":
+      return { badge: "Hapus laporan", kalimat: `menghapus laporan milik ${sebut(i.sasaran)}` };
+    case "SETUJUI_LAPORAN":
+      return { badge: "Setujui laporan", kalimat: `menyetujui laporan milik ${sebut(i.sasaran)}` };
+    case "TOLAK_LAPORAN":
+      return { badge: "Tolak laporan", kalimat: `menolak laporan milik ${sebut(i.sasaran)}` };
     default:
       return { badge: i.aksi, kalimat: `melakukan ${i.aksi}` };
   }

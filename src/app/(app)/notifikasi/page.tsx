@@ -43,6 +43,7 @@ export default async function Notifikasi({
               id: n.id,
               postId: n.postId,
               aktorUsername: n.aktorUsername,
+              judulLaporan: n.judulLaporan,
               tipe: n.tipe,
               aktorNama: n.aktorNama,
               aktorFoto: n.aktorFoto,

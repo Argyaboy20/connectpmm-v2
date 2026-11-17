@@ -3,12 +3,16 @@ import { db } from "@/db";
 import { laporanGambar, laporanKegiatan, user } from "@/db/schema";
 import { UKURAN_HALAMAN } from "@/lib/pencarian";
 
+export type StatusLaporan = "MENUNGGU" | "DISETUJUI" | "DITOLAK";
+
 export type DataLaporan = {
   id: string;
   judul: string;
   tanggal: string;
   lokasi: string;
   uraian: string;
+  status: string;
+  ditolakAlasan: string | null;
   dibuatPada: Date;
   penulisId: string;
   nama: string;
@@ -19,7 +23,11 @@ export type DataLaporan = {
 };
 
 // Koordinator melihat semua laporan. Peserta hanya laporannya sendiri.
-export async function daftarLaporan(pelaku: { id: string; role: string }, hal: number) {
+export async function daftarLaporan(
+  pelaku: { id: string; role: string },
+  hal: number,
+  status: StatusLaporan | null = null,
+) {
   const batas = UKURAN_HALAMAN * hal;
   const semua = pelaku.role === "KOORDINATOR";
 
@@ -30,6 +38,8 @@ export async function daftarLaporan(pelaku: { id: string; role: string }, hal: n
       tanggal: laporanKegiatan.tanggalKegiatan,
       lokasi: laporanKegiatan.lokasi,
       uraian: laporanKegiatan.uraian,
+      status: laporanKegiatan.status,
+      ditolakAlasan: laporanKegiatan.ditolakAlasan,
       dibuatPada: laporanKegiatan.dibuatPada,
       penulisId: laporanKegiatan.penulisId,
       nama: user.name,
@@ -43,6 +53,7 @@ export async function daftarLaporan(pelaku: { id: string; role: string }, hal: n
       and(
         isNull(laporanKegiatan.dihapusPada),
         semua ? undefined : eq(laporanKegiatan.penulisId, pelaku.id),
+        status ? eq(laporanKegiatan.status, status) : undefined,
       ),
     )
     .orderBy(desc(laporanKegiatan.dibuatPada), desc(laporanKegiatan.id))

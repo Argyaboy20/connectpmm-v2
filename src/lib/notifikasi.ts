@@ -1,14 +1,15 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { komentar, notifikasi, post, user } from "@/db/schema";
+import { komentar, laporanKegiatan, notifikasi, post, user } from "@/db/schema";
 import { UKURAN_HALAMAN } from "@/lib/pencarian";
 
-// Notifikasi yang boleh tampil: post dan komentarnya belum dihapus, pelakunya tidak diblokir.
+// Notifikasi yang boleh tampil: post, komentar, dan laporannya belum dihapus, pelakunya tidak diblokir.
 function terlihat(userId: string) {
   return and(
     eq(notifikasi.penerimaId, userId),
     isNull(post.dihapusPada),
     isNull(komentar.dihapusPada),
+    isNull(laporanKegiatan.dihapusPada),
     sql`${user.status} is distinct from 'DIBLOKIR'`,
   );
 }
@@ -20,6 +21,7 @@ export async function jumlahBelumDibaca(userId: string) {
     .leftJoin(post, eq(notifikasi.postId, post.id))
     .innerJoin(user, eq(notifikasi.aktorId, user.id))
     .leftJoin(komentar, eq(notifikasi.komentarId, komentar.id))
+    .leftJoin(laporanKegiatan, eq(notifikasi.laporanId, laporanKegiatan.id))
     .where(and(terlihat(userId), isNull(notifikasi.dibacaPada)));
   return n;
 }
@@ -37,11 +39,13 @@ export async function daftarNotifikasi(userId: string, hal: number) {
       aktorUsername: user.username,
       aktorFoto: user.image,
       isiKomentar: komentar.isi,
+      judulLaporan: laporanKegiatan.judul,
     })
     .from(notifikasi)
     .leftJoin(post, eq(notifikasi.postId, post.id))
     .innerJoin(user, eq(notifikasi.aktorId, user.id))
     .leftJoin(komentar, eq(notifikasi.komentarId, komentar.id))
+    .leftJoin(laporanKegiatan, eq(notifikasi.laporanId, laporanKegiatan.id))
     .where(terlihat(userId))
     .orderBy(desc(notifikasi.dibuatPada), desc(notifikasi.id))
     .limit(batas + 1);

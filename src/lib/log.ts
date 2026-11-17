@@ -66,7 +66,13 @@ export async function ambilLog(opsi: { kursor?: KursorFeed | null } = {}): Promi
 
   const rinci = halaman.map((b) => {
     const c = bacaCatatan(b.catatan);
-    const konten = b.aksi === "HAPUS_POST" || b.aksi === "HAPUS_KOMENTAR";
+      const konten = [
+      "HAPUS_POST",
+      "HAPUS_KOMENTAR",
+      "HAPUS_LAPORAN",
+      "SETUJUI_LAPORAN",
+      "TOLAK_LAPORAN",
+    ].includes(b.aksi);
     const idSasaran = konten ? teks(c.penulisId, 100) : b.sasaranTipe === "USER" ? b.sasaranId : null;
     return { b, c, idSasaran };
   });

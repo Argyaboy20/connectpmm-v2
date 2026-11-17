@@ -13,26 +13,46 @@ export type DataNotifikasi = {
   aktorNama: string;
   aktorFoto: string | null;
   cuplikan: string | null;
+  judulLaporan: string | null;
   waktu: string;
   belum: boolean;
 };
 
+function tujuan(d: DataNotifikasi) {
+  switch (d.tipe) {
+    case "IKUTI":
+      return d.aktorUsername ? `/profil/${d.aktorUsername}` : "/";
+    case "LAPORAN_BARU":
+      return "/moderasi?tab=laporan";
+    case "LAPORAN_DISETUJUI":
+    case "LAPORAN_DITOLAK":
+      return "/laporan";
+    default:
+      return `/post/${d.postId}`;
+  }
+}
+
+function teks(d: DataNotifikasi) {
+  const judul = d.judulLaporan ? `: “${d.judulLaporan}”` : "";
+  switch (d.tipe) {
+    case "SUKA":
+      return "menyukai post-mu";
+    case "IKUTI":
+      return "mulai mengikutimu";
+    case "LAPORAN_BARU":
+      return `mengirim laporan${judul}`;
+    case "LAPORAN_DISETUJUI":
+      return `menyetujui laporanmu${judul}`;
+    case "LAPORAN_DITOLAK":
+      return `menolak laporanmu${judul}`;
+    default:
+      return `mengomentari: “${d.cuplikan ?? ""}”`;
+  }
+}
+
 export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
   const router = useRouter();
   const [proses, mulai] = useTransition();
-  const href =
-    data.tipe === "IKUTI"
-      ? data.aktorUsername
-        ? `/profil/${data.aktorUsername}`
-        : "/"
-      : `/post/${data.postId}`;
-
-  const teks =
-    data.tipe === "SUKA"
-      ? "menyukai post-mu"
-      : data.tipe === "IKUTI"
-        ? "mulai mengikutimu"
-        : `mengomentari: “${data.cuplikan ?? ""}”`;
 
   function buka() {
     mulai(async () => {
@@ -40,7 +60,7 @@ export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
         await tandaiDibaca(data.id);
         window.dispatchEvent(new Event("notifikasi-berubah"));
       }
-      router.push(href);
+      router.push(tujuan(data));
     });
   }
 
@@ -54,7 +74,7 @@ export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
       <AvatarInisial nama={data.aktorNama} foto={data.aktorFoto} />
       <div className="min-w-0 flex-1">
         <p className="text-[15px] leading-snug break-words">
-          <span className="font-semibold">{data.aktorNama}</span> {teks}
+          <span className="font-semibold">{data.aktorNama}</span> {teks(data)}
         </p>
         <p className="text-muted-foreground mt-1 text-xs">{data.waktu}</p>
       </div>
