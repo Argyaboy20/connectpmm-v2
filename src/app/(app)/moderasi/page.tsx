@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ScrollText, Search, UserCheck, Users } from "lucide-react";
+import { ClipboardList, ScrollText, Search, UserCheck, Users } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNotNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
@@ -12,12 +12,16 @@ import { AksiVerifikasi } from "@/components/app/aksi-verifikasi";
 import { AksiBlokir } from "@/components/app/aksi-blokir";
 import { DaftarLog } from "@/components/app/daftar-log";
 import { ambilLog } from "@/lib/log";
+import { daftarLaporan } from "@/lib/laporan";
+import { MAKS_HALAMAN } from "@/lib/pencarian";
+import { ListaLaporan } from "@/components/app/lista-laporan";
 
 export const metadata = { title: "Moderasi · PMM Connect" };
 
 const TAB = [
   { kunci: "verifikasi", label: "Verifikasi", ikon: UserCheck },
   { kunci: "pengguna", label: "Pengguna", ikon: Users },
+  { kunci: "laporan", label: "Laporan", ikon: ClipboardList },
   { kunci: "log", label: "Log", ikon: ScrollText },
 ] as const;
 
@@ -185,29 +189,49 @@ async function HalamanLog() {
   return <DaftarLog awal={log.item} kursorAwal={log.kursorBerikut} />;
 }
 
+async function HalamanLaporan({ idSaya, hal }: { idSaya: string; hal: number }) {
+  const h = await daftarLaporan({ id: idSaya, role: "KOORDINATOR" }, hal);
+  return (
+    <ListaLaporan
+      item={h.item}
+      idSaya={idSaya}
+      koordinator
+      hrefMuat={h.adaLagi && hal < MAKS_HALAMAN ? `/moderasi?tab=laporan&hal=${hal + 1}` : null}
+    />
+  );
+}
+
 export default async function Moderasi({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; q?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string; hal?: string }>;
 }) {
   const pelaku = await ambilPelaku();
   if (!pelaku) redirect("/masuk");
   if (pelaku.role !== "KOORDINATOR" || pelaku.status === "DIBLOKIR") redirect("/");
 
   const param = await searchParams;
-  const tab = param.tab === "pengguna" ? "pengguna" : param.tab === "log" ? "log" : "verifikasi";
+  const tab =
+    param.tab === "pengguna"
+      ? "pengguna"
+      : param.tab === "log"
+        ? "log"
+        : param.tab === "laporan"
+          ? "laporan"
+          : "verifikasi";
+  const hal = Math.min(MAKS_HALAMAN, Math.max(1, parseInt(param.hal ?? "1", 10) || 1));
   const q = (param.q ?? "").trim().slice(0, 50);
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Moderasi</h1>
 
-      <div className="grid grid-cols-3 overflow-hidden rounded-xl border">
+      <div className="grid grid-cols-4 overflow-hidden rounded-xl border">
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
           <Link
             key={kunci}
             href={kunci === "verifikasi" ? "/moderasi" : `/moderasi?tab=${kunci}`}
-            className={`flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
+            className={`flex items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors sm:gap-2 sm:text-sm ${
               tab === kunci ? "bg-brand-gradient text-white" : "hover:bg-muted"
             }`}
           >
@@ -221,6 +245,8 @@ export default async function Moderasi({
         <DaftarVerifikasi />
       ) : tab === "pengguna" ? (
         <DaftarPengguna q={q} idSaya={pelaku.id} />
+      ) : tab === "laporan" ? (
+        <HalamanLaporan idSaya={pelaku.id} hal={hal} />
       ) : (
         <HalamanLog />
       )}

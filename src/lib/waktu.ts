@@ -54,3 +54,22 @@ export function waktuTanggal(d: Date) {
 export function waktuRingkas(d: Date) {
   return waktuRelatif(d) ?? waktuTanggal(d);
 }
+
+export function hariIniWIB() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: WIB,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+// "2026-11-14" menjadi "14 November 2026".
+export function tanggalKegiatan(s: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${s}T00:00:00Z`));
+}

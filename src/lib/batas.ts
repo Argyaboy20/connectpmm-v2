@@ -13,3 +13,7 @@ export const BATAS_UKURAN_AVATAR = 300 * 1024;
 export const JEDA_GANTI_FOTO_DETIK = 30;
 export const BATAS_PESAN = 1000;
 export const BATAS_PESAN_PER_JAM = 60;
+export const BATAS_JUDUL_LAPORAN = 100;
+export const BATAS_LOKASI_LAPORAN = 100;
+export const BATAS_URAIAN_LAPORAN = 1000;
+export const BATAS_LAPORAN_PER_JAM = 5;

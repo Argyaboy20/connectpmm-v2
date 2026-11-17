@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, integer, index, uniqueIndex, unique, primaryKey, check } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, index, uniqueIndex, unique, primaryKey, check, date } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export * from "./auth-schema";
@@ -150,5 +150,39 @@ export const pesan = pgTable(
   (t) => [
     index("pesan_percakapan_waktu_idx").on(t.percakapanId, t.dibuatPada),
     index("pesan_belum_dibaca_idx").on(t.percakapanId).where(sql`${t.dibacaPada} is null`),
+  ],
+);
+
+export const laporanKegiatan = pgTable(
+  "laporan_kegiatan",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    penulisId: text("penulis_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    judul: text("judul").notNull(),
+    tanggalKegiatan: date("tanggal_kegiatan", { mode: "string" }).notNull(),
+    lokasi: text("lokasi").notNull(),
+    uraian: text("uraian").notNull(),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+    dihapusPada: waktu("dihapus_pada"),
+  },
+  (t) => [
+    index("laporan_waktu_idx").on(t.dibuatPada),
+    index("laporan_penulis_waktu_idx").on(t.penulisId, t.dibuatPada),
+  ],
+);
+
+export const laporanGambar = pgTable(
+  "laporan_gambar",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    laporanId: text("laporan_id").notNull().references(() => laporanKegiatan.id, { onDelete: "cascade" }),
+    kunci: text("kunci").notNull(),
+    urutan: integer("urutan").notNull().default(0),
+    lebar: integer("lebar"),
+    tinggi: integer("tinggi"),
+  },
+  (t) => [
+    check("laporan_gambar_urutan_check", sql`${t.urutan} >= 0 and ${t.urutan} <= 3`),
+    unique("laporan_gambar_urutan_uniq").on(t.laporanId, t.urutan),
   ],
 );
