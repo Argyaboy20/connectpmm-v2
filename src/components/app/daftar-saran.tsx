@@ -24,7 +24,7 @@ export function DaftarSaran({
 
   return (
     <section className={tata === "baris" ? "space-y-2 xl:hidden" : "space-y-3"}>
-      <p className="text-muted-foreground text-sm font-semibold">Disarankan untuk Anda</p>
+      <p className="text-muted-foreground text-xs font-semibold xl:text-sm">Disarankan untuk Anda</p>
 
       {tata === "kolom" ? (
         <ul className="space-y-3">
@@ -45,19 +45,28 @@ export function DaftarSaran({
           ))}
         </ul>
       ) : (
-        <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
+        <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2">
           {tampil.map((o) => (
             <li
               key={o.id}
-              className="flex w-36 shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border p-3 text-center"
+              className="flex w-32 shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border p-2.5 text-center"
             >
-              <Link href={`/profil/${o.username}`} className="flex min-w-0 flex-col items-center gap-1">
-                <AvatarInisial nama={o.nama} foto={o.foto} />
-                <p className="w-full truncate text-sm font-semibold">{o.nama}</p>
-                <p className="text-muted-foreground w-full truncate text-xs">@{o.username}</p>
+              <Link
+                href={`/profil/${o.username}`}
+                className="flex w-full min-w-0 flex-col items-center gap-1"
+              >
+                <AvatarInisial nama={o.nama} foto={o.foto} ukuran={40} />
+                <p className="w-full text-xs leading-tight font-semibold [overflow-wrap:anywhere]">
+                  {o.nama}
+                </p>
+                <p className="text-muted-foreground w-full text-[10px] leading-tight [overflow-wrap:anywhere]">
+                  @{o.username}
+                </p>
                 <RoleBadge role={o.role ?? "UMUM"} />
               </Link>
-              <TombolIkuti targetId={o.id} masuk={masuk} saatIkuti={() => sembunyikan(o.id)} />
+              <div className="mt-auto">
+                <TombolIkuti targetId={o.id} masuk={masuk} saatIkuti={() => sembunyikan(o.id)} />
+              </div>
             </li>
           ))}
         </ul>

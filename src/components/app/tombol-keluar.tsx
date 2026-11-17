@@ -9,9 +9,9 @@ export function TombolKeluar() {
     <button
       type="button"
       onClick={keluar}
-      className="text-destructive hover:bg-muted inline-flex h-9 items-center gap-2 rounded-lg border px-4 text-sm font-semibold"
+      className="text-destructive hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold sm:h-9 sm:gap-2 sm:px-4 sm:text-sm"
     >
-      <LogOut className="size-4" />
+      <LogOut className="size-3.5 sm:size-4" />
       Keluar
     </button>
   );

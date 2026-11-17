@@ -125,12 +125,12 @@ export default async function HalamanProfil({
           <span>
             <span className="text-foreground font-semibold tabular-nums">{jumlahPost}</span> post
           </span>
-          <span>
+          <Link href={`${alamat}/jejaring?tab=pengikut`} className="hover:underline">
             <span className="text-foreground font-semibold tabular-nums">{info.pengikut}</span> pengikut
-          </span>
-          <span>
+          </Link>
+          <Link href={`${alamat}/jejaring?tab=mengikuti`} className="hover:underline">
             <span className="text-foreground font-semibold tabular-nums">{info.mengikuti}</span> mengikuti
-          </span>
+          </Link>
         </p>
 
         {milikSaya && (

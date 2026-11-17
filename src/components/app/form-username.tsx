@@ -38,7 +38,7 @@ export function FormUsername({ awal }: { awal: string }) {
       <button
         type="button"
         onClick={() => setBuka(true)}
-        className="hover:bg-muted inline-flex h-9 items-center rounded-lg border px-4 text-sm font-semibold"
+        className="hover:bg-muted inline-flex h-8 items-center rounded-lg border px-2.5 text-xs font-semibold sm:h-9 sm:px-4 sm:text-sm"
       >
         Ubah username
       </button>
