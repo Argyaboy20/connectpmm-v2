@@ -4,17 +4,16 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, LogOut, Menu as IkonMenu } from "lucide-react";
-import { useKeluar } from "@/lib/use-keluar";
+import { ChevronLeft, ChevronRight, Menu as IkonMenu } from "lucide-react";
 import type { Pengguna } from "@/lib/pengguna";
 import { MENU } from "./menu";
 import { LencanaNotifikasi } from "./lencana-notifikasi";
 import { menuAktif } from "./menu-aktif";
+import { MENU_LAINNYA } from "./menu-lainnya";
 
 export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
   const pathname = usePathname();
   const dari = useSearchParams().get("dari");
-  const keluar = useKeluar();
   const [ringkas, setRingkas] = useState(false);
   const [lainnya, setLainnya] = useState(false);
 
@@ -95,20 +94,26 @@ export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
           {!ringkas && <span>Lainnya</span>}
         </button>
         {lainnya && (
-          <div className="bg-popover absolute bottom-full left-3 mb-2 w-52 rounded-xl border p-1 shadow-lg">
-            {pengguna ? (
-              <button
-                type="button"
-                onClick={keluar}
-                className="text-destructive hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm"
-              >
-                <LogOut className="size-4" />
-                Keluar
-              </button>
-            ) : (
+          <div className="bg-popover absolute bottom-full left-3 mb-2 w-56 rounded-xl border p-1 shadow-lg">
+            {MENU_LAINNYA.filter((m) => !m.perluLogin || pengguna).map((m) => {
+              const Ikon = m.ikon;
+              return (
+                <Link
+                  key={m.kunci}
+                  href={m.href}
+                  onClick={() => setLainnya(false)}
+                  className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm"
+                >
+                  <Ikon className="size-4" />
+                  {m.label}
+                </Link>
+              );
+            })}
+            {!pengguna && (
               <Link
                 href="/masuk"
-                className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm"
+                onClick={() => setLainnya(false)}
+                className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold"
               >
                 Masuk
               </Link>
