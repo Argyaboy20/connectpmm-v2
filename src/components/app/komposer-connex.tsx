@@ -18,7 +18,12 @@ export function KomposerConnex({ nama, foto = null }: { nama: string; foto?: str
     setPesan("");
     mulai(async () => {
       const hasil = await buatConnex(isi);
-      if (hasil.ok) setIsi("");
+      if (hasil.ok) {
+        setIsi("");
+        if (hasil.ditahan) {
+          setPesan("Connex-mu mengandung kata yang tidak diperbolehkan dan ditahan untuk ditinjau Koordinator.");
+        }
+      }
       else setPesan(hasil.pesan);
     });
   }

@@ -6,6 +6,7 @@ import { waktuPost } from "@/lib/waktu";
 import Link from "next/link";
 import { TombolHapus } from "@/components/app/tombol-hapus";
 import { TombolBagikan } from "@/components/app/tombol-bagikan";
+import { TombolLapor } from "@/components/app/tombol-lapor";
 
 export type GambarPost = { kunci: string; lebar: number | null; tinggi: number | null };
 
@@ -124,6 +125,11 @@ export function PostCard({
           )}
         </Link>
         <TombolBagikan postId={data.id} masuk={masuk} />
+        {(!bolehHapus || moderasi) && (
+          <span className="ml-auto">
+            <TombolLapor jenis="POST" id={data.id} masuk={masuk} />
+          </span>
+        )}
       </div>
     </article>
   );

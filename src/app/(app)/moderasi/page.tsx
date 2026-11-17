@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ClipboardList, ScrollText, Search, UserCheck, Users } from "lucide-react";
+import { ClipboardList, ScrollText, Search, ShieldAlert, UserCheck, Users } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNotNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
@@ -15,6 +15,7 @@ import { ambilLog } from "@/lib/log";
 import { daftarLaporan, type StatusLaporan } from "@/lib/laporan";
 import { MAKS_HALAMAN } from "@/lib/pencarian";
 import { ListaLaporan } from "@/components/app/lista-laporan";
+import { HalamanDitahan } from "@/components/app/halaman-ditahan";
 
 export const metadata = { title: "Moderasi · PMM Connect" };
 
@@ -22,6 +23,7 @@ const TAB = [
   { kunci: "verifikasi", label: "Verifikasi", ikon: UserCheck },
   { kunci: "pengguna", label: "Pengguna", ikon: Users },
   { kunci: "laporan", label: "Laporan", ikon: ClipboardList },
+  { kunci: "ditahan", label: "Ditahan", ikon: ShieldAlert },
   { kunci: "log", label: "Log", ikon: ScrollText },
 ] as const;
 
@@ -252,7 +254,9 @@ export default async function Moderasi({
         ? "log"
         : param.tab === "laporan"
           ? "laporan"
-          : "verifikasi";
+          : param.tab === "ditahan"
+            ? "ditahan"
+            : "verifikasi";
   const hal = Math.min(MAKS_HALAMAN, Math.max(1, parseInt(param.hal ?? "1", 10) || 1));
   const statusLaporan: StatusLaporan | null =
     param.status === "semua"
@@ -268,7 +272,7 @@ export default async function Moderasi({
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Moderasi</h1>
 
-      <div className="grid grid-cols-4 overflow-hidden rounded-xl border">
+      <div className="grid grid-cols-5 overflow-hidden rounded-xl border">
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
           <Link
             key={kunci}
@@ -277,7 +281,7 @@ export default async function Moderasi({
               tab === kunci ? "bg-brand-gradient text-white" : "hover:bg-muted"
             }`}
           >
-            <Ikon className="size-4" />
+            <Ikon className="hidden size-4 sm:block" />
             {label}
           </Link>
         ))}
@@ -287,8 +291,10 @@ export default async function Moderasi({
         <DaftarVerifikasi />
       ) : tab === "pengguna" ? (
         <DaftarPengguna q={q} idSaya={pelaku.id} />
-      ) : tab === "laporan" ? (
+     ) : tab === "laporan" ? (
         <HalamanLaporan idSaya={pelaku.id} hal={hal} status={statusLaporan} />
+      ) : tab === "ditahan" ? (
+        <HalamanDitahan />
       ) : (
         <HalamanLog />
       )}

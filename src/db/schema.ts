@@ -22,6 +22,8 @@ export const post = pgTable(
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
     diubahPada: waktu("diubah_pada").defaultNow().$onUpdate(() => new Date()).notNull(),
     dihapusPada: waktu("dihapus_pada"),
+    ditahanPada: waktu("ditahan_pada"),
+    ditahanAlasan: text("ditahan_alasan"),
   },
   (t) => [
     check("post_tipe_check", sql`${t.tipe} in ('POST','CONNEX')`),
@@ -68,6 +70,8 @@ export const komentar = pgTable(
     isi: text("isi").notNull(),
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
     dihapusPada: waktu("dihapus_pada"),
+    ditahanPada: waktu("ditahan_pada"),
+    ditahanAlasan: text("ditahan_alasan"),
   },
   (t) => [index("komentar_post_waktu_idx").on(t.postId, t.dibuatPada)],
 );
@@ -98,7 +102,7 @@ export const notifikasi = pgTable(
   (t) => [
     check(
       "notifikasi_tipe_check",
-      sql`${t.tipe} in ('SUKA','KOMENTAR','IKUTI','LAPORAN_BARU','LAPORAN_DISETUJUI','LAPORAN_DITOLAK')`,
+      sql`${t.tipe} in ('SUKA','KOMENTAR','IKUTI','LAPORAN_BARU','LAPORAN_DISETUJUI','LAPORAN_DITOLAK','KONTEN_DITAHAN','KONTEN_DITAHAN_PENULIS')`,
     ),
     check(
       "notifikasi_post_check",
@@ -201,5 +205,22 @@ export const laporanGambar = pgTable(
   (t) => [
     check("laporan_gambar_urutan_check", sql`${t.urutan} >= 0 and ${t.urutan} <= 3`),
     unique("laporan_gambar_urutan_uniq").on(t.laporanId, t.urutan),
+  ],
+);
+
+export const pelaporan = pgTable(
+  "pelaporan",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    pelaporId: text("pelapor_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    sasaranTipe: text("sasaran_tipe").notNull(),
+    sasaranId: text("sasaran_id").notNull(),
+    alasan: text("alasan").notNull(),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+  },
+  (t) => [
+    check("pelaporan_tipe_check", sql`${t.sasaranTipe} in ('POST','KOMENTAR')`),
+    unique("pelaporan_uniq").on(t.pelaporId, t.sasaranTipe, t.sasaranId),
+    index("pelaporan_sasaran_idx").on(t.sasaranTipe, t.sasaranId),
   ],
 );

@@ -12,6 +12,7 @@ import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { FormKomentar } from "@/components/app/form-komentar";
 import { TombolHapus } from "@/components/app/tombol-hapus";
+import { TombolLapor } from "@/components/app/tombol-lapor";
 
 export const metadata = { title: "Post · PMM Connect" };
 
@@ -142,13 +143,16 @@ export default async function DetailPost({ params }: { params: Promise<{ id: str
                 </time>
                 <p className="mt-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap">{k.isi}</p>
               </div>
-              {(idSaya === k.penulisId || idSaya === p.penulisId || koordinator) && (
-                <TombolHapus
-                  jenis="komentar"
-                  id={k.id}
-                  moderasi={koordinator && idSaya !== k.penulisId && idSaya !== p.penulisId}
-                />
-              )}
+              <div className="flex shrink-0 items-start gap-1 self-start">
+                {idSaya !== k.penulisId && <TombolLapor jenis="KOMENTAR" id={k.id} masuk={!!sesi} />}
+                {(idSaya === k.penulisId || idSaya === p.penulisId || koordinator) && (
+                  <TombolHapus
+                    jenis="komentar"
+                    id={k.id}
+                    moderasi={koordinator && idSaya !== k.penulisId && idSaya !== p.penulisId}
+                  />
+                )}
+              </div>
             </article>
           ))
         )}

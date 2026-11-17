@@ -9,10 +9,15 @@ import { BATAS_KOMENTAR_PER_JAM } from "@/lib/batas";
 import { ambilSesi } from "@/lib/sesi";
 import { skemaKomentar } from "@/lib/validasi-komentar";
 import type { HasilAksi } from "./post";
+import { periksaTeks } from "@/lib/kata-terlarang";
+import { beritahuTahan } from "@/lib/tahan";
 
 const skemaId = z.uuid("Post tidak valid.");
 
-export async function buatKomentar(postId: string, isi: string): Promise<HasilAksi> {
+export async function buatKomentar(
+  postId: string,
+  isi: string,
+): Promise<HasilAksi & { ditahan?: boolean }> {
   const sesi = await ambilSesi();
   if (!sesi) return { ok: false, pesan: "Masuk dulu untuk berkomentar." };
   if (sesi.user.status === "DIBLOKIR") return { ok: false, pesan: "Akunmu sedang diblokir." };
@@ -44,10 +49,24 @@ export async function buatKomentar(postId: string, isi: string): Promise<HasilAk
     };
   }
 
+  const cek = periksaTeks(hasil.data);
+  const sekarang = new Date();
   const [baru] = await db
     .insert(komentar)
-    .values({ postId: id.data, penulisId: sesi.user.id, isi: hasil.data })
+    .values({
+      postId: id.data,
+      penulisId: sesi.user.id,
+      isi: hasil.data,
+      ...(cek.terlarang
+        ? { dihapusPada: sekarang, ditahanPada: sekarang, ditahanAlasan: cek.alasan }
+        : {}),
+    })
     .returning({ id: komentar.id });
+  if (cek.terlarang) {
+    await beritahuTahan({ penulisId: sesi.user.id, postId: id.data, komentarId: baru.id });
+    revalidatePath(`/post/${id.data}`);
+    return { ok: true, ditahan: true };
+  }
   if (ada[0].penulisId !== sesi.user.id) {
     try {
       await db.insert(notifikasi).values({

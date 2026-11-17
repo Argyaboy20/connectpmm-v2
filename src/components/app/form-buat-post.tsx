@@ -62,9 +62,18 @@ export function FormBuatPost() {
         form.append("tinggi", String(hasil.tinggi));
       }
       const r = await fetch("/api/post-foto", { method: "POST", body: form });
-      const data = (await r.json().catch(() => null)) as { ok: boolean; pesan?: string } | null;
+      const data = (await r.json().catch(() => null)) as {
+        ok: boolean;
+        pesan?: string;
+        ditahan?: boolean;
+      } | null;
       if (!r.ok || !data?.ok) {
         setPesan(data?.pesan ?? "Gagal membagikan. Coba lagi.");
+        return;
+      }
+      if (data.ditahan) {
+        router.push("/notifikasi");
+        router.refresh();
         return;
       }
       router.push("/");

@@ -7,10 +7,12 @@ import { post } from "@/db/schema";
 import { BATAS_POST_PER_JAM } from "@/lib/batas";
 import { ambilSesi } from "@/lib/sesi";
 import { skemaConnex } from "@/lib/validasi-connex";
+import { periksaTeks } from "@/lib/kata-terlarang";
+import { beritahuTahan } from "@/lib/tahan";
 
 export type HasilAksi = { ok: true } | { ok: false; pesan: string };
 
-export async function buatConnex(isi: string): Promise<HasilAksi> {
+export async function buatConnex(isi: string): Promise<HasilAksi & { ditahan?: boolean }> {
   const sesi = await ambilSesi();
   if (!sesi) return { ok: false, pesan: "Masuk dulu untuk membagikan cerita." };
   if (sesi.user.status === "DIBLOKIR") return { ok: false, pesan: "Akunmu sedang diblokir." };
@@ -29,7 +31,24 @@ export async function buatConnex(isi: string): Promise<HasilAksi> {
     return { ok: false, pesan: `Batas ${BATAS_POST_PER_JAM} post per jam tercapai. Coba lagi nanti.` };
   }
 
-  await db.insert(post).values({ penulisId: sesi.user.id, tipe: "CONNEX", isi: hasil.data });
+  const cek = periksaTeks(hasil.data);
+  const sekarang = new Date();
+  const [baru] = await db
+    .insert(post)
+    .values({
+      penulisId: sesi.user.id,
+      tipe: "CONNEX",
+      isi: hasil.data,
+      ...(cek.terlarang
+        ? { dihapusPada: sekarang, ditahanPada: sekarang, ditahanAlasan: cek.alasan }
+        : {}),
+    })
+    .returning({ id: post.id });
+  if (cek.terlarang) {
+    await beritahuTahan({ penulisId: sesi.user.id, postId: baru.id });
+    revalidatePath("/", "layout");
+    return { ok: true, ditahan: true };
+  }
   revalidatePath("/");
   return { ok: true };
 }

@@ -72,6 +72,7 @@ export async function ambilLog(opsi: { kursor?: KursorFeed | null } = {}): Promi
       "HAPUS_LAPORAN",
       "SETUJUI_LAPORAN",
       "TOLAK_LAPORAN",
+      "PULIHKAN_KONTEN",
       "UBAH_PT"
     ].includes(b.aksi);
     const idSasaran = konten ? teks(c.penulisId, 100) : b.sasaranTipe === "USER" ? b.sasaranId : null;

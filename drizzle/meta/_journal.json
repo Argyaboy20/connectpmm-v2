@@ -71,6 +71,13 @@
       "when": 1794902650400,
       "tag": "0009_laporan_status",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794922799148,
+      "tag": "0010_moderasi_konten",
+      "breakpoints": true
     }
   ]
 }

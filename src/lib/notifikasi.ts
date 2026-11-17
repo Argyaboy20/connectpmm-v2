@@ -1,14 +1,15 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { komentar, laporanKegiatan, notifikasi, post, user } from "@/db/schema";
 import { UKURAN_HALAMAN } from "@/lib/pencarian";
 
 // Notifikasi yang boleh tampil: post, komentar, dan laporannya belum dihapus, pelakunya tidak diblokir.
 function terlihat(userId: string) {
+  const ditahan = sql`${notifikasi.tipe} like 'KONTEN_DITAHAN%'`;
   return and(
     eq(notifikasi.penerimaId, userId),
-    isNull(post.dihapusPada),
-    isNull(komentar.dihapusPada),
+    or(isNull(post.dihapusPada), ditahan),
+    or(isNull(komentar.dihapusPada), ditahan),
     isNull(laporanKegiatan.dihapusPada),
     sql`${user.status} is distinct from 'DIBLOKIR'`,
   );

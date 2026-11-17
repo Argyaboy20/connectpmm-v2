@@ -27,6 +27,10 @@ function tujuan(d: DataNotifikasi) {
     case "LAPORAN_DISETUJUI":
     case "LAPORAN_DITOLAK":
       return "/laporan";
+    case "KONTEN_DITAHAN":
+      return "/moderasi?tab=ditahan";
+    case "KONTEN_DITAHAN_PENULIS":
+      return "/profil";
     default:
       return `/post/${d.postId}`;
   }
@@ -45,6 +49,10 @@ function teks(d: DataNotifikasi) {
       return `menyetujui laporanmu${judul}`;
     case "LAPORAN_DITOLAK":
       return `menolak laporanmu${judul}`;
+    case "KONTEN_DITAHAN":
+      return "memiliki konten yang ditahan untuk ditinjau";
+    case "KONTEN_DITAHAN_PENULIS":
+      return "Kontenmu ditahan untuk ditinjau Koordinator karena terdeteksi melanggar aturan.";
     default:
       return `mengomentari: “${d.cuplikan ?? ""}”`;
   }
@@ -74,7 +82,12 @@ export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
       <AvatarInisial nama={data.aktorNama} foto={data.aktorFoto} />
       <div className="min-w-0 flex-1">
         <p className="text-[15px] leading-snug break-words">
-          <span className="font-semibold">{data.aktorNama}</span> {teks(data)}
+          {data.tipe !== "KONTEN_DITAHAN_PENULIS" && (
+            <>
+              <span className="font-semibold">{data.aktorNama}</span>{" "}
+            </>
+          )}
+          {teks(data)}
         </p>
         <p className="text-muted-foreground mt-1 text-xs">{data.waktu}</p>
       </div>

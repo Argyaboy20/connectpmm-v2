@@ -8,6 +8,7 @@ import { ambilPelaku } from "@/lib/pelaku";
 import { JEDA_GANTI_USERNAME_JAM } from "@/lib/batas";
 import { skemaBio, skemaUsername } from "@/lib/validasi-profil";
 import type { HasilAksi } from "./post";
+import { periksaTeks } from "@/lib/kata-terlarang";
 
 export async function ubahBio(bio: string): Promise<HasilAksi> {
   const pelaku = await ambilPelaku();
@@ -17,6 +18,10 @@ export async function ubahBio(bio: string): Promise<HasilAksi> {
   const hasil = skemaBio.safeParse(bio);
   if (!hasil.success) {
     return { ok: false, pesan: hasil.error.issues[0]?.message ?? "Bio tidak valid." };
+  }
+
+  if (periksaTeks(hasil.data).terlarang) {
+    return { ok: false, pesan: "Bio mengandung kata yang tidak diperbolehkan." };
   }
 
   await db

@@ -46,6 +46,8 @@ function uraikan(i: ItemLog): { badge: string; kalimat: string } {
       return { badge: "Tolak laporan", kalimat: `menolak laporan milik ${sebut(i.sasaran)}` };
     case "UBAH_PT":
       return { badge: "Ubah PT", kalimat: "mengubah data PT miliknya" };
+    case "PULIHKAN_KONTEN":
+      return { badge: "Pulihkan konten", kalimat: `memulihkan konten milik ${sebut(i.sasaran)}` };
     default:
       return { badge: i.aksi, kalimat: `melakukan ${i.aksi}` };
   }

@@ -7,6 +7,8 @@ import { deteksiGambar } from "@/lib/jenis-gambar";
 import { hapusFile, simpanFile } from "@/lib/penyimpanan";
 import { ambilSesi } from "@/lib/sesi";
 import { skemaCaption } from "@/lib/validasi-post";
+import { periksaTeks } from "@/lib/kata-terlarang";
+import { beritahuTahan } from "@/lib/tahan";
 
 function galat(status: number, pesan: string) {
   return Response.json({ ok: false, pesan }, { status });
@@ -33,6 +35,7 @@ export async function POST(req: Request) {
   if (!caption.success) {
     return galat(400, caption.error.issues[0]?.message ?? "Keterangan tidak valid.");
   }
+  const cek = periksaTeks(caption.data);
 
   const berkas = form.getAll("foto").filter((f): f is File => f instanceof File);
   if (berkas.length === 0) return galat(400, "Pilih minimal 1 foto.");
@@ -70,6 +73,9 @@ export async function POST(req: Request) {
       penulisId: sesi.user.id,
       tipe: "POST",
       isi: caption.data,
+      ...(cek.terlarang
+        ? { dihapusPada: new Date(), ditahanPada: new Date(), ditahanAlasan: cek.alasan }
+        : {}),
     });
     await db.insert(postGambar).values(
       kunci.map((k, i) => ({
@@ -87,6 +93,11 @@ export async function POST(req: Request) {
     return galat(500, "Gagal menyimpan foto. Coba lagi.");
   }
 
+  if (cek.terlarang) {
+    await beritahuTahan({ penulisId: sesi.user.id, postId });
+    revalidatePath("/", "layout");
+    return Response.json({ ok: true, id: postId, ditahan: true });
+  }
   revalidatePath("/");
   return Response.json({ ok: true, id: postId });
 }
