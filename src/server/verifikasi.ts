@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { logModerasi, user } from "@/db/schema";
@@ -130,5 +130,62 @@ export async function tutupPenolakan(): Promise<HasilAksi> {
     .set({ roleDitolak: null, alasanPenolakan: null })
     .where(eq(user.id, sesi.user.id));
   revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+const skemaAjuan = z.object({
+  nim: z.string("NIM tidak valid.").trim().min(1, "NIM wajib diisi.").max(30, "NIM maksimal 30 karakter."),
+  ptPengirim: z
+    .string("PT tidak valid.")
+    .trim()
+    .min(1, "PT Pengirim wajib diisi.")
+    .max(150, "Nama PT maksimal 150 karakter."),
+  ptPenerima: z
+    .string("PT tidak valid.")
+    .trim()
+    .min(1, "PT Penerima wajib diisi.")
+    .max(150, "Nama PT maksimal 150 karakter."),
+});
+
+// Koordinator yang ditolak boleh mengajukan ulang sebagai Peserta.
+export async function ajukanPeserta(masukan: {
+  nim: string;
+  ptPengirim: string;
+  ptPenerima: string;
+}): Promise<HasilAksi> {
+  const p = await ambilPelaku();
+  if (!p) return { ok: false, pesan: "Masuk dulu." };
+  if (p.status === "DIBLOKIR") return { ok: false, pesan: "Akunmu sedang diblokir." };
+
+  const h = skemaAjuan.safeParse(masukan);
+  if (!h.success) return { ok: false, pesan: h.error.issues[0]?.message ?? "Data tidak valid." };
+
+  const diubah = await db
+    .update(user)
+    .set({
+      roleDiminta: "PESERTA",
+      roleDitolak: null,
+      alasanPenolakan: null,
+      nim: h.data.nim,
+      ptPengirim: h.data.ptPengirim,
+      ptPenerima: h.data.ptPenerima,
+      nidn: null,
+      statusKoordinator: null,
+    })
+    .where(
+      and(
+        eq(user.id, p.id),
+        eq(user.role, "UMUM"),
+        eq(user.roleDitolak, "KOORDINATOR"),
+        isNull(user.roleDiminta),
+      ),
+    )
+    .returning({ id: user.id });
+  if (diubah.length === 0) {
+    return { ok: false, pesan: "Pengajuan ulang hanya untuk Koordinator yang ditolak." };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/moderasi");
   return { ok: true };
 }
