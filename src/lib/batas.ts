@@ -17,3 +17,7 @@ export const BATAS_JUDUL_LAPORAN = 100;
 export const BATAS_LOKASI_LAPORAN = 100;
 export const BATAS_URAIAN_LAPORAN = 1000;
 export const BATAS_LAPORAN_PER_JAM = 5;
+export const BATAS_CAPTION_STORY = 150;
+export const BATAS_FOTO_STORY = 1536 * 1024;
+export const BATAS_STORY_PER_JAM = 10;
+export const DURASI_STORY_JAM = 24;

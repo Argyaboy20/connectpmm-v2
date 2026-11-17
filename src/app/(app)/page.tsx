@@ -4,6 +4,8 @@ import { ambilSesi } from "@/lib/sesi";
 import { ambilFeed } from "@/lib/feed";
 import { KomposerConnex } from "@/components/app/komposer-connex";
 import { DaftarFeed } from "@/components/app/daftar-feed";
+import { BarisStory } from "@/components/app/baris-story";
+import { ambilStoryAktif } from "@/lib/story";
 
 export const metadata = { title: "Beranda · PMM Connect" };
 
@@ -21,15 +23,25 @@ export default async function Beranda({
   const tab = param === "connex" ? "connex" : "post";
   const sesi = await ambilSesi();
 
-  const feed = await ambilFeed({
-    tipe: tab === "connex" ? "CONNEX" : "POST",
-    idSaya: sesi?.user.id ?? null,
-  });
+  const [feed, story] = await Promise.all([
+    ambilFeed({
+      tipe: tab === "connex" ? "CONNEX" : "POST",
+      idSaya: sesi?.user.id ?? null,
+    }),
+    ambilStoryAktif(),
+  ]);
   const idPenghapus = sesi && sesi.user.status !== "DIBLOKIR" ? sesi.user.id : null;
   const koordinator = sesi?.user.role === "KOORDINATOR" && sesi.user.status !== "DIBLOKIR";
 
   return (
     <div className="space-y-4">
+      <BarisStory
+        grup={story}
+        masuk={!!sesi}
+        idSaya={idPenghapus}
+        koordinator={koordinator}
+        saya={sesi ? { nama: sesi.user.name, foto: sesi.user.image ?? null } : null}
+      />
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
           <Link

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { laporanGambar, laporanKegiatan, post, postGambar, user } from "@/db/schema";
+import { laporanGambar, laporanKegiatan, post, postGambar, story, user } from "@/db/schema";
 import { ambilPelaku } from "@/lib/pelaku";
 import { hapusFile } from "@/lib/penyimpanan";
 import type { HasilAksi } from "./post";
@@ -44,7 +44,19 @@ export async function hapusAkun(konfirmasi: string): Promise<HasilAksi> {
     .from(laporanGambar)
     .innerJoin(laporanKegiatan, eq(laporanGambar.laporanId, laporanKegiatan.id))
     .where(eq(laporanKegiatan.penulisId, pelaku.id));
-  const kunci = [...fotoPost, ...fotoLaporan].map((f) => f.kunci);
+  const fotoStory = await db
+    .select({ kunci: story.kunci })
+    .from(story)
+    .where(eq(story.penulisId, pelaku.id));
+  const [akun] = await db
+    .select({ image: user.image })
+    .from(user)
+    .where(eq(user.id, pelaku.id))
+    .limit(1);
+  const kunciAvatar = akun?.image?.startsWith("/media/avatar/")
+    ? [akun.image.slice("/media/".length)]
+    : [];
+  const kunci = [...fotoPost, ...fotoLaporan, ...fotoStory].map((f) => f.kunci).concat(kunciAvatar);
 
   // Basis data dulu. Semua data turunan ikut terhapus lewat cascade.
   try {

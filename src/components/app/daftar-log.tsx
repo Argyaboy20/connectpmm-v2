@@ -11,6 +11,7 @@ const BAHAYA = new Set([
   "HAPUS_POST",
   "HAPUS_KOMENTAR",
   "HAPUS_LAPORAN",
+  "HAPUS_STORY",
   "TOLAK_LAPORAN",
   "TOLAK_PEMOHON",
   "BLOKIR_PENGGUNA",
@@ -48,6 +49,8 @@ function uraikan(i: ItemLog): { badge: string; kalimat: string } {
       return { badge: "Ubah PT", kalimat: "mengubah data PT miliknya" };
     case "PULIHKAN_KONTEN":
       return { badge: "Pulihkan konten", kalimat: `memulihkan konten milik ${sebut(i.sasaran)}` };
+    case "HAPUS_STORY":
+      return { badge: "Hapus story", kalimat: `menghapus story milik ${sebut(i.sasaran)}` };
     default:
       return { badge: i.aksi, kalimat: `melakukan ${i.aksi}` };
   }

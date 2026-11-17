@@ -23,7 +23,7 @@ export default function Privasi() {
         <ul className="list-disc space-y-1 pl-5">
           <li>Akun: nama, username, email, foto profil, bio, dan password (disimpan dalam bentuk hash, bukan teks asli).</li>
           <li>Peserta: NIM, PT Pengirim, PT Penerima. Koordinator: NIDN dan PT.</li>
-          <li>Konten: post, Connex, foto, komentar, suka, pengikut, pesan, dan laporan kegiatan.</li>
+          <li>Konten: post, Connex, Story, foto, komentar, suka, pengikut, pesan, dan laporan kegiatan.</li>
           <li>Sesi login: alamat IP dan jenis perangkat.</li>
         </ul>
       </Bagian>
@@ -38,6 +38,7 @@ export default function Privasi() {
       <Bagian judul="Siapa yang bisa melihat apa">
         <ul className="list-disc space-y-1 pl-5">
           <li>Post, Connex, komentar, dan profil bersifat publik, termasuk bagi pengunjung yang belum masuk.</li>
+          <li>Story hanya bisa dilihat akun yang sudah masuk, dan hilang otomatis setelah 24 jam.</li>
           <li>Laporan Kegiatan hanya bisa dilihat penulisnya dan Koordinator.</li>
           <li>
             Pesan hanya tampil untuk dua pihak dalam percakapan. Pesan tidak dienkripsi ujung ke ujung, dan
@@ -58,7 +59,7 @@ export default function Privasi() {
         <p>
           Saat post atau laporan dihapus, fotonya dihapus permanen dari penyimpanan. Teksnya disembunyikan dari
           tampilan, tapi masih tersimpan di basis data sebagai arsip internal. Pesan yang dihapus juga hanya
-          disembunyikan. Tindakan moderasi dicatat dalam log yang hanya dilihat Koordinator.
+          disembunyikan. Story dan fotonya dihapus permanen secara otomatis 24 jam setelah dibuat. Tindakan moderasi dicatat dalam log yang hanya dilihat Koordinator.
         </p>
       </Bagian>
 

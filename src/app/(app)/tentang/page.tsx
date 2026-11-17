@@ -31,6 +31,7 @@ export default function Tentang() {
       <Bagian judul="Fitur">
         <ul className="list-disc space-y-1 pl-5">
           <li>Post foto (1 sampai 4 foto) dan Connex (tulisan singkat, maksimal 500 karakter).</li>
+          <li>Story: satu foto dengan caption singkat yang hilang otomatis setelah 24 jam.</li>
           <li>Suka, komentar, bagikan post ke Pesan, ikuti akun lain, dan Pencarian orang atau post.</li>
           <li>Pesan satu lawan satu dan Notifikasi.</li>
           <li>

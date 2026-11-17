@@ -224,3 +224,21 @@ export const pelaporan = pgTable(
     index("pelaporan_sasaran_idx").on(t.sasaranTipe, t.sasaranId),
   ],
 );
+
+export const story = pgTable(
+  "story",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    penulisId: text("penulis_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    kunci: text("kunci").notNull(),
+    caption: text("caption").notNull().default(""),
+    lebar: integer("lebar"),
+    tinggi: integer("tinggi"),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+    kedaluwarsaPada: waktu("kedaluwarsa_pada").notNull(),
+  },
+  (t) => [
+    index("story_kedaluwarsa_idx").on(t.kedaluwarsaPada),
+    index("story_penulis_waktu_idx").on(t.penulisId, t.dibuatPada),
+  ],
+);
