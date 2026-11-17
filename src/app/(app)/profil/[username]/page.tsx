@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, count, eq, isNull } from "drizzle-orm";
-import { ImageIcon, MessageCircle } from "lucide-react";
+import { ImageIcon, Mail, MessageCircle } from "lucide-react";
 import { db } from "@/db";
 import { post, user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
@@ -16,6 +16,7 @@ import { TombolKeluar } from "@/components/app/tombol-keluar";
 import { TombolIkuti } from "@/components/app/tombol-ikuti";
 import { DaftarSaran } from "@/components/app/daftar-saran";
 import { ambilSaran, infoIkuti } from "@/lib/saran";
+import { ambilPercakapan, bolehMulai } from "@/lib/pesan";
 
 export const metadata = { title: "Profil · PMM Connect" };
 
@@ -69,6 +70,13 @@ export default async function HalamanProfil({
   const alamat = `/profil/${profil.username}`;
   const info = await infoIkuti(profil.id, sesi?.user.id ?? null);
   const saran = milikSaya && sesi ? await ambilSaran(sesi.user.id, 10) : [];
+  const bolehPesan =
+    !milikSaya &&
+    !!sesi &&
+    sesi.user.status !== "DIBLOKIR" &&
+    (bolehMulai(sesi.user.role ?? "UMUM", profil.role) ||
+      !!(await ambilPercakapan(sesi.user.id, profil.id)));
+  const tampilPesan = !sesi || bolehPesan;
 
   return (
     <div className="space-y-4">
@@ -87,12 +95,23 @@ export default async function HalamanProfil({
             <p className="text-muted-foreground text-sm">@{profil.username}</p>
           </div>
           {!milikSaya && (
-            <TombolIkuti
-              key={`${profil.id}:${info.sayaMengikuti}`}
-              targetId={profil.id}
-              masuk={!!sesi}
-              awal={info.sayaMengikuti}
-            />
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <TombolIkuti
+                key={`${profil.id}:${info.sayaMengikuti}`}
+                targetId={profil.id}
+                masuk={!!sesi}
+                awal={info.sayaMengikuti}
+              />
+              {tampilPesan && (
+                <Link
+                  href={sesi ? `/pesan/${profil.username}` : "/masuk"}
+                  className="hover:bg-muted flex h-8 items-center gap-1.5 rounded-lg border px-4 text-sm font-semibold"
+                >
+                  <Mail className="size-4" />
+                  Pesan
+                </Link>
+              )}
+            </div>
           )}
         </div>
 

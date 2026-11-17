@@ -32,3 +32,25 @@ export function waktuPost(d: Date) {
   const relatif = waktuRelatif(d);
   return relatif ? `${relatif} · ${waktuLengkap(d)}` : waktuLengkap(d);
 }
+
+export function waktuJam(d: Date) {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: WIB,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(d);
+}
+
+export function waktuTanggal(d: Date) {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: WIB,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(d);
+}
+
+export function waktuRingkas(d: Date) {
+  return waktuRelatif(d) ?? waktuTanggal(d);
+}

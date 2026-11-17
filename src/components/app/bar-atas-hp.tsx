@@ -41,7 +41,7 @@ export function BarAtasHp({ pengguna }: { pengguna: Pengguna | null }) {
               >
                 <span className="relative inline-flex">
                   <Ikon className="size-5" />
-                  {m.kunci === "notifikasi" && <LencanaNotifikasi />}
+                  {(m.kunci === "notifikasi" || m.kunci === "pesan") && <LencanaNotifikasi jenis={m.kunci} />}
                 </span>
               </Link>
             );

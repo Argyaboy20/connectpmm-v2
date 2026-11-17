@@ -115,3 +115,37 @@ export const ikuti = pgTable(
     index("ikuti_diikuti_idx").on(t.diikutiId),
   ],
 );
+
+export const percakapan = pgTable(
+  "percakapan",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    penggunaAId: text("pengguna_a_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    penggunaBId: text("pengguna_b_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+    pesanTerakhirPada: waktu("pesan_terakhir_pada").defaultNow().notNull(),
+  },
+  (t) => [
+    check("percakapan_beda_check", sql`${t.penggunaAId} <> ${t.penggunaBId}`),
+    unique("percakapan_pasangan_uniq").on(t.penggunaAId, t.penggunaBId),
+    index("percakapan_a_waktu_idx").on(t.penggunaAId, t.pesanTerakhirPada),
+    index("percakapan_b_waktu_idx").on(t.penggunaBId, t.pesanTerakhirPada),
+  ],
+);
+
+export const pesan = pgTable(
+  "pesan",
+  {
+    id: text("id").primaryKey().$defaultFn(idBaru),
+    percakapanId: text("percakapan_id").notNull().references(() => percakapan.id, { onDelete: "cascade" }),
+    pengirimId: text("pengirim_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    isi: text("isi").notNull(),
+    dibacaPada: waktu("dibaca_pada"),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+    dihapusPada: waktu("dihapus_pada"),
+  },
+  (t) => [
+    index("pesan_percakapan_waktu_idx").on(t.percakapanId, t.dibuatPada),
+    index("pesan_belum_dibaca_idx").on(t.percakapanId).where(sql`${t.dibacaPada} is null`),
+  ],
+);

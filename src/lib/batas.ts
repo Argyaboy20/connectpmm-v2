@@ -11,3 +11,5 @@ export const BATAS_BIO = 160;
 export const JEDA_GANTI_USERNAME_JAM = 24;
 export const BATAS_UKURAN_AVATAR = 300 * 1024;
 export const JEDA_GANTI_FOTO_DETIK = 30;
+export const BATAS_PESAN = 1000;
+export const BATAS_PESAN_PER_JAM = 60;

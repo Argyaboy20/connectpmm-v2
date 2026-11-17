@@ -76,7 +76,7 @@ export function Sidebar({ pengguna }: { pengguna: Pengguna | null }) {
             >
               <span className="relative inline-flex shrink-0">
                 <Ikon className="size-5" />
-                {m.kunci === "notifikasi" && <LencanaNotifikasi />}
+                {(m.kunci === "notifikasi" || m.kunci === "pesan") && <LencanaNotifikasi jenis={m.kunci} />}
               </span>
               {!ringkas && <span>{m.label}</span>}
             </Link>

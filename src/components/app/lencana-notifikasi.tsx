@@ -1,9 +1,11 @@
 "use client";
 
-import { useJumlahNotifikasi } from "./notifikasi-konteks";
+import { useJumlahNotifikasi, useJumlahPesan } from "./notifikasi-konteks";
 
-export function LencanaNotifikasi() {
-  const n = useJumlahNotifikasi();
+export function LencanaNotifikasi({ jenis = "notifikasi" }: { jenis?: string }) {
+  const notifikasi = useJumlahNotifikasi();
+  const pesan = useJumlahPesan();
+  const n = jenis === "pesan" ? pesan : notifikasi;
   if (n <= 0) return null;
   return (
     <span
