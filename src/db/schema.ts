@@ -89,16 +89,18 @@ export const notifikasi = pgTable(
     penerimaId: text("penerima_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     aktorId: text("aktor_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     tipe: text("tipe").notNull(),
-    postId: text("post_id").notNull().references(() => post.id, { onDelete: "cascade" }),
+    postId: text("post_id").references(() => post.id, { onDelete: "cascade" }),
     komentarId: text("komentar_id").references(() => komentar.id, { onDelete: "cascade" }),
     dibacaPada: waktu("dibaca_pada"),
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
   },
   (t) => [
-    check("notifikasi_tipe_check", sql`${t.tipe} in ('SUKA','KOMENTAR')`),
+    check("notifikasi_tipe_check", sql`${t.tipe} in ('SUKA','KOMENTAR','IKUTI')`),
+    check("notifikasi_post_check", sql`${t.tipe} = 'IKUTI' or ${t.postId} is not null`),
     index("notifikasi_penerima_waktu_idx").on(t.penerimaId, t.dibuatPada),
     index("notifikasi_belum_dibaca_idx").on(t.penerimaId).where(sql`${t.dibacaPada} is null`),
     uniqueIndex("notifikasi_suka_uniq").on(t.aktorId, t.postId).where(sql`${t.tipe} = 'SUKA'`),
+    uniqueIndex("notifikasi_ikuti_uniq").on(t.aktorId, t.penerimaId).where(sql`${t.tipe} = 'IKUTI'`),
   ],
 );
 
@@ -140,6 +142,7 @@ export const pesan = pgTable(
     percakapanId: text("percakapan_id").notNull().references(() => percakapan.id, { onDelete: "cascade" }),
     pengirimId: text("pengirim_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     isi: text("isi").notNull(),
+    postId: text("post_id").references(() => post.id, { onDelete: "set null" }),
     dibacaPada: waktu("dibaca_pada"),
     dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
     dihapusPada: waktu("dihapus_pada"),

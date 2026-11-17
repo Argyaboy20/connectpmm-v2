@@ -5,7 +5,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
-import { alasanTidakBoleh, ambilPercakapan, ambilRiwayat, bolehMulai } from "@/lib/pesan";
+import {
+  BATAS_RIWAYAT,
+  alasanTidakBoleh,
+  ambilPercakapan,
+  ambilRiwayat,
+  bolehMulai,
+} from "@/lib/pesan";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { RuangObrolan } from "@/components/app/ruang-obrolan";
@@ -62,6 +68,7 @@ export default async function RuangPesan({ params }: { params: Promise<{ usernam
         key={lawan.id}
         targetId={lawan.id}
         awal={riwayat}
+        adaLagiAwal={riwayat.length >= BATAS_RIWAYAT}
         bolehKirim={boleh}
         alasan={alasan}
       />

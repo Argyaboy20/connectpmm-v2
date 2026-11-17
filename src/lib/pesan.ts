@@ -1,9 +1,17 @@
 import { and, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { percakapan, pesan, user } from "@/db/schema";
+import { percakapan, pesan, post, user } from "@/db/schema";
 
 export const BATAS_RIWAYAT = 50;
 export const BATAS_DAFTAR = 50;
+
+export type PreviewPost = {
+  id: string;
+  nama: string;
+  cuplikan: string;
+  adaFoto: boolean;
+  tersedia: boolean;
+};
 
 export type DataPesan = {
   id: string;
@@ -11,6 +19,8 @@ export type DataPesan = {
   isi: string;
   dibuat: string;
   dihapus: boolean;
+  dibaca: boolean;
+  post: PreviewPost | null;
 };
 
 export type BarisPercakapan = {
@@ -53,27 +63,97 @@ export async function ambilPercakapan(idX: string, idY: string) {
   return c ?? null;
 }
 
+const kolomPesan = {
+  id: pesan.id,
+  pengirimId: pesan.pengirimId,
+  isi: pesan.isi,
+  dibuatPada: pesan.dibuatPada,
+  dihapusPada: pesan.dihapusPada,
+  dibacaPada: pesan.dibacaPada,
+  postId: pesan.postId,
+};
+
+type BarisPesan = {
+  id: string;
+  pengirimId: string;
+  isi: string;
+  dibuatPada: Date;
+  dihapusPada: Date | null;
+  dibacaPada: Date | null;
+  postId: string | null;
+};
+
+async function petakan(baris: BarisPesan[], idSaya: string): Promise<DataPesan[]> {
+  const idPost = [
+    ...new Set(baris.filter((b) => b.postId && !b.dihapusPada).map((b) => b.postId as string)),
+  ];
+  const preview =
+    idPost.length > 0
+      ? await db
+          .select({
+            id: post.id,
+            isi: post.isi,
+            tipe: post.tipe,
+            dihapusPada: post.dihapusPada,
+            nama: user.name,
+          })
+          .from(post)
+          .innerJoin(user, eq(post.penulisId, user.id))
+          .where(inArray(post.id, idPost))
+      : [];
+
+  return baris.map((b) => {
+    let kartu: PreviewPost | null = null;
+    if (b.postId && !b.dihapusPada) {
+      const p = preview.find((x) => x.id === b.postId);
+      kartu =
+        p && !p.dihapusPada
+          ? {
+              id: p.id,
+              nama: p.nama,
+              cuplikan: p.isi.replace(/\s+/g, " ").slice(0, 100),
+              adaFoto: p.tipe === "POST",
+              tersedia: true,
+            }
+          : { id: b.postId, nama: "", cuplikan: "", adaFoto: false, tersedia: false };
+    }
+    return {
+      id: b.id,
+      dariSaya: b.pengirimId === idSaya,
+      isi: b.dihapusPada ? "" : b.isi,
+      dibuat: b.dibuatPada.toISOString(),
+      dihapus: !!b.dihapusPada,
+      dibaca: !!b.dibacaPada,
+      post: kartu,
+    };
+  });
+}
+
 export async function ambilRiwayat(percakapanId: string, idSaya: string): Promise<DataPesan[]> {
   const baris = await db
-    .select({
-      id: pesan.id,
-      pengirimId: pesan.pengirimId,
-      isi: pesan.isi,
-      dibuatPada: pesan.dibuatPada,
-      dihapusPada: pesan.dihapusPada,
-    })
+    .select(kolomPesan)
     .from(pesan)
     .where(eq(pesan.percakapanId, percakapanId))
     .orderBy(desc(pesan.dibuatPada), desc(pesan.id))
     .limit(BATAS_RIWAYAT);
+  return petakan(baris.reverse(), idSaya);
+}
 
-  return baris.reverse().map((b) => ({
-    id: b.id,
-    dariSaya: b.pengirimId === idSaya,
-    isi: b.dihapusPada ? "" : b.isi,
-    dibuat: b.dibuatPada.toISOString(),
-    dihapus: !!b.dihapusPada,
-  }));
+// Pesan yang lebih lama dari pesan dengan id `sebelumId`.
+export async function ambilRiwayatLama(percakapanId: string, idSaya: string, sebelumId: string) {
+  const baris = await db
+    .select(kolomPesan)
+    .from(pesan)
+    .where(
+      and(
+        eq(pesan.percakapanId, percakapanId),
+        sql`(${pesan.dibuatPada}, ${pesan.id}) < (select p2.dibuat_pada, p2.id from pesan p2 where p2.id = ${sebelumId})`,
+      ),
+    )
+    .orderBy(desc(pesan.dibuatPada), desc(pesan.id))
+    .limit(BATAS_RIWAYAT + 1);
+  const adaLagi = baris.length > BATAS_RIWAYAT;
+  return { item: await petakan(baris.slice(0, BATAS_RIWAYAT).reverse(), idSaya), adaLagi };
 }
 
 // Jumlah percakapan yang punya pesan masuk belum dibaca.
@@ -125,6 +205,7 @@ export async function daftarPercakapan(idSaya: string): Promise<BarisPercakapan[
         percakapanId: pesan.percakapanId,
         pengirimId: pesan.pengirimId,
         isi: pesan.isi,
+        postId: pesan.postId,
         dibuatPada: pesan.dibuatPada,
         dihapusPada: pesan.dihapusPada,
       })
@@ -148,10 +229,15 @@ export async function daftarPercakapan(idSaya: string): Promise<BarisPercakapan[
   return daftar.flatMap((d) => {
     const t = terakhir.find((x) => x.percakapanId === d.id);
     if (!t) return [];
+    const cuplikan = t.dihapusPada
+      ? "Pesan dihapus"
+      : t.postId && !t.isi
+        ? "Membagikan sebuah post"
+        : t.isi.replace(/\s+/g, " ").slice(0, 80);
     return [
       {
         ...d,
-        cuplikan: t.dihapusPada ? "Pesan dihapus" : t.isi.replace(/\s+/g, " ").slice(0, 80),
+        cuplikan,
         dariSaya: t.pengirimId === idSaya,
         waktu: t.dibuatPada,
         belumDibaca: belum.find((b) => b.percakapanId === d.id)?.n ?? 0,

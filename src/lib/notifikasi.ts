@@ -17,7 +17,7 @@ export async function jumlahBelumDibaca(userId: string) {
   const [{ n }] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(notifikasi)
-    .innerJoin(post, eq(notifikasi.postId, post.id))
+    .leftJoin(post, eq(notifikasi.postId, post.id))
     .innerJoin(user, eq(notifikasi.aktorId, user.id))
     .leftJoin(komentar, eq(notifikasi.komentarId, komentar.id))
     .where(and(terlihat(userId), isNull(notifikasi.dibacaPada)));
@@ -34,11 +34,12 @@ export async function daftarNotifikasi(userId: string, hal: number) {
       dibacaPada: notifikasi.dibacaPada,
       dibuatPada: notifikasi.dibuatPada,
       aktorNama: user.name,
+      aktorUsername: user.username,
       aktorFoto: user.image,
       isiKomentar: komentar.isi,
     })
     .from(notifikasi)
-    .innerJoin(post, eq(notifikasi.postId, post.id))
+    .leftJoin(post, eq(notifikasi.postId, post.id))
     .innerJoin(user, eq(notifikasi.aktorId, user.id))
     .leftJoin(komentar, eq(notifikasi.komentarId, komentar.id))
     .where(terlihat(userId))

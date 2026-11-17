@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { ikuti, user } from "@/db/schema";
+import { ikuti, notifikasi, user } from "@/db/schema";
 import { ambilSesi } from "@/lib/sesi";
 
 export type HasilIkuti = { ok: true } | { ok: false; pesan: string };
@@ -33,10 +33,27 @@ export async function aturIkuti(targetId: string, mengikuti: boolean): Promise<H
       .insert(ikuti)
       .values({ pengikutId: sesi.user.id, diikutiId: id.data })
       .onConflictDoNothing();
+    try {
+      await db
+        .insert(notifikasi)
+        .values({ penerimaId: id.data, aktorId: sesi.user.id, tipe: "IKUTI" })
+        .onConflictDoNothing();
+    } catch (e) {
+      console.error("Gagal membuat notifikasi ikuti", e);
+    }
   } else {
     await db
       .delete(ikuti)
       .where(and(eq(ikuti.pengikutId, sesi.user.id), eq(ikuti.diikutiId, id.data)));
+    await db
+      .delete(notifikasi)
+      .where(
+        and(
+          eq(notifikasi.aktorId, sesi.user.id),
+          eq(notifikasi.penerimaId, id.data),
+          eq(notifikasi.tipe, "IKUTI"),
+        ),
+      );
   }
 
   // Layout ikut disegarkan supaya panel "Disarankan" langsung memuat akun pengganti.

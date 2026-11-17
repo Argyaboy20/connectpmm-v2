@@ -1,10 +1,11 @@
-import { MessageCircle, Share2 } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { TombolSuka } from "@/components/app/tombol-suka";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { waktuPost } from "@/lib/waktu";
 import Link from "next/link";
 import { TombolHapus } from "@/components/app/tombol-hapus";
+import { TombolBagikan } from "@/components/app/tombol-bagikan";
 
 export type GambarPost = { kunci: string; lebar: number | null; tinggi: number | null };
 
@@ -122,9 +123,7 @@ export function PostCard({
             <span className="text-sm tabular-nums">{data.jumlahKomentar}</span>
           )}
         </Link>
-        <span title="Segera" className="opacity-50">
-          <Share2 className="size-5" />
-        </span>
+        <TombolBagikan postId={data.id} masuk={masuk} />
       </div>
     </article>
   );

@@ -1,27 +1,41 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { BATAS_PESAN } from "@/lib/batas";
 import { waktuJam, waktuTanggal } from "@/lib/waktu";
-import { hapusPesan, kirimPesan, muatPesan } from "@/server/pesan";
+import { hapusPesan, kirimPesan, muatPesan, muatPesanLama } from "@/server/pesan";
 import type { DataPesan } from "@/lib/pesan";
+
+// Gabungkan berdasarkan id, urut waktu. Pesan yang sudah dimuat tidak hilang saat pengecekan berkala.
+function gabung(lama: DataPesan[], baru: DataPesan[]) {
+  const peta = new Map(lama.map((m) => [m.id, m]));
+  for (const m of baru) peta.set(m.id, m);
+  return [...peta.values()].sort((a, b) =>
+    a.dibuat === b.dibuat ? (a.id < b.id ? -1 : 1) : a.dibuat < b.dibuat ? -1 : 1,
+  );
+}
 
 export function RuangObrolan({
   targetId,
   awal,
+  adaLagiAwal,
   bolehKirim,
   alasan,
 }: {
   targetId: string;
   awal: DataPesan[];
+  adaLagiAwal: boolean;
   bolehKirim: boolean;
   alasan: string;
 }) {
   const [item, setItem] = useState(awal);
+  const [adaLagi, setAdaLagi] = useState(adaLagiAwal);
   const [isi, setIsi] = useState("");
   const [galat, setGalat] = useState("");
   const [proses, mulai] = useTransition();
+  const [prosesLama, mulaiLama] = useTransition();
   const akhirRef = useRef<HTMLDivElement>(null);
 
   const muat = useCallback(async () => {
@@ -29,7 +43,7 @@ export function RuangObrolan({
     try {
       const h = await muatPesan(targetId);
       if (!h.ok) return;
-      setItem(h.item);
+      setItem((s) => gabung(s, h.item));
       if (h.baruDibaca > 0) window.dispatchEvent(new Event("notifikasi-berubah"));
     } catch {}
   }, [targetId]);
@@ -76,9 +90,37 @@ export function RuangObrolan({
     });
   }
 
+  function muatLama() {
+    const pertama = item[0];
+    if (!pertama) return;
+    setGalat("");
+    mulaiLama(async () => {
+      const h = await muatPesanLama(targetId, pertama.id);
+      if (!h.ok) {
+        setGalat(h.pesan);
+        return;
+      }
+      setItem((s) => gabung(s, h.item));
+      setAdaLagi(h.adaLagi);
+    });
+  }
+
   return (
     <div>
       <div className="space-y-1.5 pb-4">
+        {adaLagi && (
+          <div className="flex justify-center pb-2">
+            <button
+              type="button"
+              onClick={muatLama}
+              disabled={prosesLama}
+              className="hover:bg-muted inline-flex h-8 items-center gap-2 rounded-lg border px-4 text-xs font-semibold disabled:opacity-60"
+            >
+              {prosesLama && <Loader2 className="size-3.5 animate-spin" />}
+              Muat pesan sebelumnya
+            </button>
+          </div>
+        )}
         {item.length === 0 && (
           <p className="text-muted-foreground py-12 text-center text-sm">
             Belum ada pesan. Tulis pesan pertamamu.
@@ -113,10 +155,32 @@ export function RuangObrolan({
                   {m.dihapus ? (
                     <p className="text-sm italic">Pesan dihapus</p>
                   ) : (
-                    <p className="text-[15px] leading-snug break-words whitespace-pre-wrap">{m.isi}</p>
+                    <>
+                      {m.post &&
+                        (m.post.tersedia ? (
+                          <Link
+                            href={`/post/${m.post.id}`}
+                            className={`mb-1 block rounded-xl border p-2 text-left ${
+                              m.dariSaya ? "border-white/40 bg-white/10" : "bg-background"
+                            }`}
+                          >
+                            <p className="text-xs font-semibold [overflow-wrap:anywhere]">{m.post.nama}</p>
+                            <p className="text-sm leading-snug [overflow-wrap:anywhere]">
+                              {m.post.cuplikan || (m.post.adaFoto ? "Post foto" : "")}
+                            </p>
+                            <p className="mt-1 text-[10px] underline">Lihat post</p>
+                          </Link>
+                        ) : (
+                          <p className="mb-1 text-sm italic">Post tidak tersedia</p>
+                        ))}
+                      {m.isi && (
+                        <p className="text-[15px] leading-snug break-words whitespace-pre-wrap">{m.isi}</p>
+                      )}
+                    </>
                   )}
                   <p className={`mt-1 text-right text-[10px] ${warnaJam}`}>
                     {waktuJam(new Date(m.dibuat))}
+                    {m.dariSaya && !m.dihapus && m.dibaca && " · Dibaca"}
                   </p>
                 </div>
               </div>

@@ -10,6 +10,7 @@ import {
   alasanTidakBoleh,
   ambilPercakapan,
   ambilRiwayat,
+  ambilRiwayatLama,
   bolehMulai,
   urutkanPasangan,
   type DataPesan,
@@ -114,4 +115,23 @@ export async function hapusPesan(pesanId: string): Promise<HasilAksi> {
     .returning({ id: pesan.id });
   if (dihapus.length === 0) return { ok: false, pesan: "Pesan tidak ditemukan." };
   return { ok: true };
+}
+
+export type HasilLama =
+  | { ok: true; item: DataPesan[]; adaLagi: boolean }
+  | { ok: false; pesan: string };
+
+export async function muatPesanLama(targetId: string, sebelumId: string): Promise<HasilLama> {
+  const pelaku = await ambilPelaku();
+  if (!pelaku) return { ok: false, pesan: "Masuk dulu." };
+
+  const id = skemaIdUser.safeParse(targetId);
+  const kursor = skemaIdPesan.safeParse(sebelumId);
+  if (!id.success || !kursor.success) return { ok: false, pesan: "Permintaan tidak valid." };
+
+  const c = await ambilPercakapan(pelaku.id, id.data);
+  if (!c) return { ok: true, item: [], adaLagi: false };
+
+  const h = await ambilRiwayatLama(c.id, pelaku.id, kursor.data);
+  return { ok: true, item: h.item, adaLagi: h.adaLagi };
 }

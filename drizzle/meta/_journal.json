@@ -50,6 +50,13 @@
       "when": 1794880832383,
       "tag": "0006_pesan",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794883802187,
+      "tag": "0007_bagikan_ikuti",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,8 @@ import { tandaiDibaca } from "@/server/notifikasi";
 
 export type DataNotifikasi = {
   id: string;
-  postId: string;
+  postId: string | null;
+  aktorUsername: string | null;
   tipe: string;
   aktorNama: string;
   aktorFoto: string | null;
@@ -19,7 +20,19 @@ export type DataNotifikasi = {
 export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
   const router = useRouter();
   const [proses, mulai] = useTransition();
-  const href = `/post/${data.postId}`;
+  const href =
+    data.tipe === "IKUTI"
+      ? data.aktorUsername
+        ? `/profil/${data.aktorUsername}`
+        : "/"
+      : `/post/${data.postId}`;
+
+  const teks =
+    data.tipe === "SUKA"
+      ? "menyukai post-mu"
+      : data.tipe === "IKUTI"
+        ? "mulai mengikutimu"
+        : `mengomentari: “${data.cuplikan ?? ""}”`;
 
   function buka() {
     mulai(async () => {
@@ -41,8 +54,7 @@ export function BarisNotifikasi({ data }: { data: DataNotifikasi }) {
       <AvatarInisial nama={data.aktorNama} foto={data.aktorFoto} />
       <div className="min-w-0 flex-1">
         <p className="text-[15px] leading-snug break-words">
-          <span className="font-semibold">{data.aktorNama}</span>{" "}
-          {data.tipe === "SUKA" ? "menyukai post-mu" : `mengomentari: “${data.cuplikan ?? ""}”`}
+          <span className="font-semibold">{data.aktorNama}</span> {teks}
         </p>
         <p className="text-muted-foreground mt-1 text-xs">{data.waktu}</p>
       </div>
