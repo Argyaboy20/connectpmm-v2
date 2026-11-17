@@ -41,6 +41,7 @@ export function NotifikasiProvider({
       } catch {}
     }
 
+    muat();
     const timer = setInterval(muat, 60_000);
     document.addEventListener("visibilitychange", muat);
     window.addEventListener("notifikasi-berubah", muat);

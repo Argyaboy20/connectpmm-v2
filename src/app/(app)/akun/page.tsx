@@ -11,6 +11,7 @@ import { FormUsername } from "@/components/app/form-username";
 import { FormPassword } from "@/components/app/form-password";
 import { FormPt } from "@/components/app/form-pt";
 import { TombolKeluar } from "@/components/app/tombol-keluar";
+import { TombolHapusAkun } from "@/components/app/tombol-hapus-akun";
 import { RoleBadge } from "@/components/role-badge";
 
 export const metadata = { title: "Informasi Akun · PMM Connect" };
@@ -111,7 +112,8 @@ export default async function Akun() {
           </Baris>
         )}
 
-        <div className="flex justify-end pt-4">
+        <div className="flex flex-wrap justify-end gap-2 pt-4">
+          <TombolHapusAkun />
           <TombolKeluar />
         </div>
       </section>

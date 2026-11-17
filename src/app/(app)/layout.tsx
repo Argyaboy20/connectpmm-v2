@@ -1,6 +1,5 @@
+import { Suspense } from "react";
 import { ambilSesi } from "@/lib/sesi";
-import { jumlahBelumDibaca } from "@/lib/notifikasi";
-import { jumlahPesanBelumDibaca } from "@/lib/pesan";
 import type { Pengguna } from "@/lib/pengguna";
 import { Sidebar } from "@/components/app/sidebar";
 import { MenuBawah } from "@/components/app/menu-bawah";
@@ -24,12 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         alasanPenolakan: u.alasanPenolakan ?? null,
       }
     : null;
-  const [jumlahNotif, jumlahPesan] = u
-    ? await Promise.all([jumlahBelumDibaca(u.id), jumlahPesanBelumDibaca(u.id)])
-    : [0, 0];
 
   return (
-    <NotifikasiProvider awal={jumlahNotif} awalPesan={jumlahPesan} masuk={!!u}>
+    <NotifikasiProvider awal={0} awalPesan={0} masuk={!!u}>
       <div className="flex min-h-screen">
         <Sidebar pengguna={pengguna} />
         <div className="flex min-w-0 flex-1 justify-center">
@@ -50,7 +46,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             )}
             {children}
           </main>
-          <PanelKanan pengguna={pengguna} />
+          <Suspense fallback={<aside className="hidden w-80 shrink-0 border-l xl:block" />}>
+            <PanelKanan pengguna={pengguna} />
+          </Suspense>
         </div>
         <MenuBawah pengguna={pengguna} />
       </div>
