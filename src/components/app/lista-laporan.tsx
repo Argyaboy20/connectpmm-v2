@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, ClipboardList, MapPin } from "lucide-react";
+import { CalendarDays, ClipboardList, Download, MapPin } from "lucide-react";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { AksiLaporan } from "@/components/app/aksi-laporan";
@@ -124,6 +124,19 @@ export function ListaLaporan({
                 {l.ditolakAlasan}
               </p>
             )}
+
+            {koordinator || (l.penulisId === idSaya && l.status === "DISETUJUI") ? (
+              <a
+                href={`/api/laporan/${l.id}/pdf`}
+                download
+                className="hover:bg-muted mt-3 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold"
+              >
+                <Download className="size-3.5" />
+                Unduh PDF
+              </a>
+            ) : l.penulisId === idSaya ? (
+              <p className="text-muted-foreground mt-3 text-xs">PDF tersedia setelah laporan disetujui.</p>
+            ) : null}
 
             {koordinator && l.status === "MENUNGGU" && l.penulisId !== idSaya && (
               <AksiLaporan id={l.id} />
