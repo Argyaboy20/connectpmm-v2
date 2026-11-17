@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { Users } from "lucide-react";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
 import { FormFoto } from "@/components/app/form-foto";
 import { FormUsername } from "@/components/app/form-username";
+import { DaftarSaran } from "@/components/app/daftar-saran";
+import { ambilSaran } from "@/lib/saran";
 import type { Pengguna } from "@/lib/pengguna";
 
-export function PanelKanan({ pengguna }: { pengguna: Pengguna | null }) {
+export async function PanelKanan({ pengguna }: { pengguna: Pengguna | null }) {
+  const saran = await ambilSaran(pengguna?.id ?? null, 5);
+
   return (
-    <aside className="sticky top-0 hidden h-screen w-80 shrink-0 flex-col gap-6 border-l p-6 xl:flex">
+    <aside className="sticky top-0 hidden h-screen w-80 shrink-0 flex-col gap-6 overflow-y-auto border-l p-6 xl:flex">
       {pengguna ? (
         <div className="space-y-3">
           <div className="flex items-start gap-3">
@@ -43,13 +46,7 @@ export function PanelKanan({ pengguna }: { pengguna: Pengguna | null }) {
         </div>
       )}
 
-      <div>
-        <p className="text-muted-foreground text-sm font-semibold">Disarankan untuk Anda</p>
-        <div className="text-muted-foreground flex flex-col items-center gap-2 py-10 text-center text-sm">
-          <Users className="size-10 opacity-40" />
-          Tidak ada saran untuk ditampilkan
-        </div>
-      </div>
+      <DaftarSaran items={saran} masuk={!!pengguna} tata="kolom" />
     </aside>
   );
 }

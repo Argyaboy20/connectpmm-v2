@@ -101,3 +101,17 @@ export const notifikasi = pgTable(
     uniqueIndex("notifikasi_suka_uniq").on(t.aktorId, t.postId).where(sql`${t.tipe} = 'SUKA'`),
   ],
 );
+
+export const ikuti = pgTable(
+  "ikuti",
+  {
+    pengikutId: text("pengikut_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    diikutiId: text("diikuti_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    dibuatPada: waktu("dibuat_pada").defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.pengikutId, t.diikutiId] }),
+    check("ikuti_bukan_diri_sendiri", sql`${t.pengikutId} <> ${t.diikutiId}`),
+    index("ikuti_diikuti_idx").on(t.diikutiId),
+  ],
+);

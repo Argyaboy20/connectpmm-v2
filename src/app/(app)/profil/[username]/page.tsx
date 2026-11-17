@@ -13,6 +13,9 @@ import { FormBio } from "@/components/app/form-bio";
 import { FormUsername } from "@/components/app/form-username";
 import { FormFoto } from "@/components/app/form-foto";
 import { TombolKeluar } from "@/components/app/tombol-keluar";
+import { TombolIkuti } from "@/components/app/tombol-ikuti";
+import { DaftarSaran } from "@/components/app/daftar-saran";
+import { ambilSaran, infoIkuti } from "@/lib/saran";
 
 export const metadata = { title: "Profil · PMM Connect" };
 
@@ -64,6 +67,8 @@ export default async function HalamanProfil({
   });
 
   const alamat = `/profil/${profil.username}`;
+  const info = await infoIkuti(profil.id, sesi?.user.id ?? null);
+  const saran = milikSaya && sesi ? await ambilSaran(sesi.user.id, 10) : [];
 
   return (
     <div className="space-y-4">
@@ -81,6 +86,14 @@ export default async function HalamanProfil({
             </div>
             <p className="text-muted-foreground text-sm">@{profil.username}</p>
           </div>
+          {!milikSaya && (
+            <TombolIkuti
+              key={`${profil.id}:${info.sayaMengikuti}`}
+              targetId={profil.id}
+              masuk={!!sesi}
+              awal={info.sayaMengikuti}
+            />
+          )}
         </div>
 
         {profil.bio && (
@@ -89,8 +102,16 @@ export default async function HalamanProfil({
           </p>
         )}
 
-        <p className="text-muted-foreground mt-3 text-sm">
-          <span className="text-foreground font-semibold tabular-nums">{jumlahPost}</span> post
+       <p className="text-muted-foreground mt-3 flex flex-wrap gap-x-4 text-sm">
+          <span>
+            <span className="text-foreground font-semibold tabular-nums">{jumlahPost}</span> post
+          </span>
+          <span>
+            <span className="text-foreground font-semibold tabular-nums">{info.pengikut}</span> pengikut
+          </span>
+          <span>
+            <span className="text-foreground font-semibold tabular-nums">{info.mengikuti}</span> mengikuti
+          </span>
         </p>
 
         {milikSaya && (
@@ -103,6 +124,8 @@ export default async function HalamanProfil({
           </div>
         )}
       </section>
+
+      {milikSaya && <DaftarSaran items={saran} masuk tata="baris" />}
 
       <div className="grid grid-cols-2 overflow-hidden rounded-xl border">
         {TAB.map(({ kunci, label, ikon: Ikon }) => (
