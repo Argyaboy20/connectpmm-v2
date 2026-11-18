@@ -16,7 +16,7 @@ import { TombolKeluar } from "@/components/app/tombol-keluar";
 import { TombolIkuti } from "@/components/app/tombol-ikuti";
 import { DaftarSaran } from "@/components/app/daftar-saran";
 import { ambilSaran, infoIkuti } from "@/lib/saran";
-import { ambilPercakapan, bolehMulai } from "@/lib/pesan";
+import { ambilPercakapan, bolehKirim } from "@/lib/pesan";
 
 export const metadata = { title: "Profil · PMM Connect" };
 
@@ -74,8 +74,11 @@ export default async function HalamanProfil({
     !milikSaya &&
     !!sesi &&
     sesi.user.status !== "DIBLOKIR" &&
-    (bolehMulai(sesi.user.role ?? "UMUM", profil.role) ||
-      !!(await ambilPercakapan(sesi.user.id, profil.id)));
+    bolehKirim(
+      sesi.user.role ?? "UMUM",
+      profil.role,
+      !!(await ambilPercakapan(sesi.user.id, profil.id)),
+    );
   const tampilPesan = !sesi || bolehPesan;
 
   return (

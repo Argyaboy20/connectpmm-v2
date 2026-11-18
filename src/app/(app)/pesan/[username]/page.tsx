@@ -10,7 +10,7 @@ import {
   alasanTidakBoleh,
   ambilPercakapan,
   ambilRiwayat,
-  bolehMulai,
+  bolehKirim,
 } from "@/lib/pesan";
 import { AvatarInisial } from "@/components/avatar-inisial";
 import { RoleBadge } from "@/components/role-badge";
@@ -43,8 +43,8 @@ export default async function RuangPesan({ params }: { params: Promise<{ usernam
 
   const roleSaya = sesi.user.role ?? "UMUM";
   const diblokir = sesi.user.status === "DIBLOKIR";
-  const boleh = !diblokir && (!!c || bolehMulai(roleSaya, lawan.role));
-  const alasan = diblokir ? "Akunmu sedang diblokir." : alasanTidakBoleh(roleSaya);
+  const boleh = !diblokir && bolehKirim(roleSaya, lawan.role, !!c);
+  const alasan = diblokir ? "Akunmu sedang diblokir." : alasanTidakBoleh(roleSaya, lawan.role);
 
   return (
     <div className="-mb-11 space-y-3 lg:mb-0">

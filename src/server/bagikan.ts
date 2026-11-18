@@ -62,11 +62,14 @@ export async function bagikanPost(postId: string, percakapanId: string): Promise
 
   const lawanId = c.a === pelaku.id ? c.b : c.a;
   const [lawan] = await db
-    .select({ status: user.status })
+    .select({ status: user.status, role: user.role })
     .from(user)
     .where(eq(user.id, lawanId))
     .limit(1);
   if (!lawan || lawan.status === "DIBLOKIR") return { ok: false, pesan: "Akun tidak ditemukan." };
+  if (pelaku.role === "UMUM" && lawan.role === "KOORDINATOR") {
+    return { ok: false, pesan: "Akun Umum tidak bisa mengirim pesan ke Koordinator." };
+  }
 
   const satuJamLalu = new Date(Date.now() - 60 * 60 * 1000);
   const [{ n }] = await db

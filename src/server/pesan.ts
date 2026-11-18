@@ -12,6 +12,7 @@ import {
   ambilRiwayat,
   ambilRiwayatLama,
   bolehMulai,
+  bolehKirim,
   urutkanPasangan,
   type DataPesan,
 } from "@/lib/pesan";
@@ -47,8 +48,8 @@ export async function kirimPesan(targetId: string, isi: string): Promise<HasilAk
   if (!target || target.status === "DIBLOKIR") return { ok: false, pesan: "Akun tidak ditemukan." };
 
   let c = await ambilPercakapan(pelaku.id, target.id);
-  if (!c && !bolehMulai(pelaku.role, target.role)) {
-    return { ok: false, pesan: alasanTidakBoleh(pelaku.role) };
+  if (!bolehKirim(pelaku.role, target.role, !!c)) {
+    return { ok: false, pesan: alasanTidakBoleh(pelaku.role, target.role) };
   }
 
   const satuJamLalu = new Date(Date.now() - 60 * 60 * 1000);
