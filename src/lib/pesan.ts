@@ -40,25 +40,18 @@ export function urutkanPasangan(x: string, y: string): [string, string] {
   return x < y ? [x, y] : [y, x];
 }
 
-// Aturan memulai chat. Kalau percakapan sudah ada, kedua pihak bebas saling membalas,
-// kecuali Umum ke Koordinator (selalu ditolak, lihat bolehKirim).
+// Satu-satunya larangan: Umum tidak boleh mengirim ke Koordinator (termasuk membalas).
+// Selain itu semua peran bebas memulai dan membalas.
+export function bolehKirim(roleSaya: string, roleTujuan: string, _adaPercakapan?: boolean) {
+  return !(roleSaya === "UMUM" && roleTujuan === "KOORDINATOR");
+}
+
 export function bolehMulai(roleSaya: string, roleTujuan: string) {
-  if (roleSaya === "KOORDINATOR") return true;
-  if (roleSaya === "PESERTA") return true;
-  return false;
+  return bolehKirim(roleSaya, roleTujuan);
 }
 
-// Aturan kirim secara keseluruhan, termasuk membalas percakapan yang sudah ada.
-export function bolehKirim(roleSaya: string, roleTujuan: string, adaPercakapan: boolean) {
-  if (roleSaya === "UMUM" && roleTujuan === "KOORDINATOR") return false;
-  return adaPercakapan || bolehMulai(roleSaya, roleTujuan);
-}
-
-export function alasanTidakBoleh(roleSaya: string, roleTujuan?: string) {
-  if (roleSaya === "UMUM" && roleTujuan === "KOORDINATOR") {
-    return "Akun Umum tidak bisa mengirim pesan ke Koordinator.";
-  }
-  return "Akun Umum belum bisa memulai percakapan. Kamu bisa membalas kalau dihubungi lebih dulu.";
+export function alasanTidakBoleh(_roleSaya?: string, _roleTujuan?: string) {
+  return "Akun Umum tidak bisa mengirim pesan ke Koordinator. Kamu hanya bisa membaca pesan dari Koordinator.";
 }
 
 export async function ambilPercakapan(idX: string, idY: string) {

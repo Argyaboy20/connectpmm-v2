@@ -44,15 +44,15 @@ export default function Tentang() {
       <Bagian judul="Jenis akun">
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <strong>Umum:</strong> membaca, membuat post dan Connex, suka, komentar. Bisa membalas Pesan, tapi
-            belum bisa memulai percakapan.
+            <strong>Umum:</strong> membaca, membuat post dan Connex, suka, komentar, serta berkirim Pesan
+            dengan Peserta. Pesan dari Koordinator hanya bisa dibaca, tidak bisa dibalas.
           </li>
           <li>
-            <strong>Peserta:</strong> semua hak Umum, memulai Pesan ke Peserta dan Koordinator, serta membuat
+            <strong>Peserta:</strong> semua hak Umum, berkirim Pesan ke semua jenis akun, serta membuat
             Laporan Kegiatan.
           </li>
           <li>
-            <strong>Koordinator:</strong> memulai Pesan ke siapa saja, memverifikasi pendaftaran, menyetujui
+            <strong>Koordinator:</strong> berkirim Pesan ke siapa saja, memverifikasi pendaftaran, menyetujui
             atau menolak laporan, menghapus konten dengan alasan, dan memblokir akun.
           </li>
         </ul>
